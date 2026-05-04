@@ -285,7 +285,9 @@ export default function HistorialPage() {
                 </div>
               </div>
 
-              {(detalle.cajaDejo || detalle.cajaRetiro) && (
+              {(detalle.cajaDeuda ||
+                detalle.cajaDejo ||
+                detalle.cajaRetiro) && (
                 <div>
                   <div className="sec-title">Cajas</div>
                   <div className="cajas-grid">
@@ -326,7 +328,7 @@ export default function HistorialPage() {
                 </div>
               )}
 
-              {detalle.observaciones && (
+              {detalle.observaciones?.trim() && (
                 <div>
                   <div className="sec-title">Observaciones</div>
                   <p
