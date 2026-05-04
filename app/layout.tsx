@@ -21,9 +21,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body>
-        <div className="page active">{children}</div>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

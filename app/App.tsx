@@ -3,13 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { useState } from "react";
-import FacturaPage from "./components/FacturaPage";
-import ProductosPage from "./components/ProductosPage";
-
-type Tab = "factura" | "productos";
-
-export default function App() {
+export default function Nav() {
   const path = usePathname();
 
   return (
