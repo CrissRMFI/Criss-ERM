@@ -11,6 +11,7 @@ export default function Nav() {
   const links = [
     { href: "/factura", label: "Factura" },
     { href: "/productos", label: "Productos" },
+    { href: "/historial", label: "Historial" },
   ];
 
   return (
