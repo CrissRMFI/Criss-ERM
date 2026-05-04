@@ -8,7 +8,7 @@ export function useExport(exportRef: RefObject<HTMLDivElement>) {
       useCORS: true,
       backgroundColor: "#f0ebe0",
       logging: false,
-      width: 864,
+      width: 664,
     });
   };
 

@@ -66,11 +66,18 @@ export default function FacturaExport(props: Props) {
 
   return (
     // Fondo crema exterior con padding — esto es lo que captura html2canvas
-    <div style={{ backgroundColor: "#f0ebe0", padding: 32 }}>
+    <div
+      style={{
+        backgroundColor: "#f0ebe0",
+        padding: 32,
+        display: "flex",
+        justifyContent: "center",
+      }}
+    >
       {/* Tarjeta blanca */}
       <div
         style={{
-          width: 800,
+          width: 600,
           backgroundColor: "#ffffff",
           fontFamily: "'DM Sans', Arial, sans-serif",
           fontSize: 14,
@@ -358,7 +365,7 @@ export default function FacturaExport(props: Props) {
           )}
 
           {/* CAJAS */}
-          {(cajaDatos.deuda || cajaDatos.dejo || cajaDatos.retiro) && (
+          {
             <div>
               <div style={secTitle}>Movimiento de cajas</div>
               <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
@@ -417,17 +424,17 @@ export default function FacturaExport(props: Props) {
                 </div>
               </div>
             </div>
-          )}
+          }
 
           {/* OBSERVACIONES */}
-          {obs && (
+          {
             <div>
               <div style={secTitle}>Observaciones</div>
               <div style={{ fontSize: 13, color: "#4a3f30", lineHeight: 1.6 }}>
                 {obs}
               </div>
             </div>
-          )}
+          }
         </div>
 
         {/* FOOTER */}
