@@ -44,11 +44,6 @@ export default function FacturaPage() {
       showToast("Ingresá el nombre del cliente");
       return;
     }
-    const lineas = factura.filas.filter((f) => f.nombre);
-    if (!lineas.length) {
-      showToast("Agregá al menos un producto");
-      return;
-    }
 
     setSaving(true);
     try {

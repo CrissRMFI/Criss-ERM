@@ -285,31 +285,24 @@ export default function HistorialPage() {
                 </div>
               </div>
 
-              {(detalle.cajaDeuda ||
-                detalle.cajaDejo ||
-                detalle.cajaRetiro) && (
+              {
                 <div>
-                  <div className="sec-title">Cajas</div>
-                  <div className="cajas-grid">
+                  <div className="sec-title">Movimiento de cajas</div>
+                  <div className="cajas-grid" style={{ marginBottom: 10 }}>
                     {[
                       { label: "Deuda", value: detalle.cajaDeuda },
                       { label: "Dejo", value: detalle.cajaDejo },
                       { label: "Retiro", value: detalle.cajaRetiro },
-                    ].map(
-                      ({ label, value }) =>
-                        value && (
-                          <div className="caja" key={label}>
-                            <label className="caja-lbl">{label}</label>
-                            <div
-                              style={{ fontWeight: 700, fontSize: "0.97rem" }}
-                            >
-                              {value}
-                            </div>
-                          </div>
-                        ),
-                    )}
+                    ].map(({ label, value }) => (
+                      <div className="caja" key={label}>
+                        <label className="caja-lbl">{label}</label>
+                        <div style={{ fontWeight: 700, fontSize: "1rem" }}>
+                          {value ?? 0}{" "}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="totals-box" style={{ marginTop: 10 }}>
+                  <div className="totals-box">
                     <div className="t-row grand">
                       <span className="t-lbl">Nuevo saldo en cajas</span>
                       <span
@@ -326,22 +319,26 @@ export default function HistorialPage() {
                     </div>
                   </div>
                 </div>
-              )}
+              }
 
-              {detalle.observaciones?.trim() && (
+              {
                 <div>
                   <div className="sec-title">Observaciones</div>
-                  <p
+                  <div
                     style={{
+                      background: "var(--cream)",
+                      borderRadius: 8,
+                      padding: "12px 14px",
                       fontSize: "0.84rem",
-                      color: "var(--muted)",
-                      lineHeight: 1.6,
+                      color: "var(--ink)",
+                      lineHeight: 1.65,
+                      borderLeft: "3px solid var(--gold)",
                     }}
                   >
-                    {detalle.observaciones}
-                  </p>
+                    {detalle.observaciones || "Sin observaciones."}
+                  </div>
                 </div>
-              )}
+              }
             </div>
           </div>
         </div>

@@ -49,7 +49,7 @@ export default function CajasMovimiento({
             className="t-val"
             style={{ color: nuevoSaldo > 0 ? "var(--rust)" : "var(--sage)" }}
           >
-            $ {nuevoSaldo.toFixed(2)}
+            {nuevoSaldo}
           </span>
         </div>
       </div>
