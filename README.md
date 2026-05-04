@@ -113,3 +113,4 @@ factura-app/
 Hay dos formas:
 1. **Desde la app** → pestaña "Productos" → "+ Nuevo producto"
 2. **Desde Prisma Studio** → `npx prisma studio` → tabla `Producto`
+# Criss-ERM
