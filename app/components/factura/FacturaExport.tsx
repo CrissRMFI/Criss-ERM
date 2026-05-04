@@ -87,9 +87,25 @@ export default function FacturaExport(props: Props) {
   };
 
   return (
-    <div style={S.wrap}>
+    <div
+      style={{
+        backgroundColor: "#f0ebe0", // fondo crema exterior
+        padding: 32,
+      }}
+    >
       {/* HEADER */}
-      <div style={S.header}>
+      <div
+        style={{
+          width: 800,
+          backgroundColor: "#ffffff",
+          fontFamily: "'DM Sans', Arial, sans-serif",
+          fontSize: 14,
+          color: "#1a1209",
+          borderRadius: 12,
+          overflow: "hidden",
+          boxShadow: "0 4px 24px rgba(26,18,9,0.12)",
+        }}
+      >
         <div>
           <div
             style={{

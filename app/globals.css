@@ -853,3 +853,14 @@ textarea.field-input {
     padding: 12px 16px;
   }
 }
+
+.dd {
+  min-width: 280px;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.dd-row {
+  white-space: normal;
+  word-break: break-word;
+}
