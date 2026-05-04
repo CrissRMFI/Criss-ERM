@@ -22,7 +22,6 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <App />
         <div className="page active">{children}</div>
       </body>
     </html>
