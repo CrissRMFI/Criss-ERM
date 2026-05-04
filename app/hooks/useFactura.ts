@@ -62,9 +62,9 @@ export function useFactura() {
   const cajaDejo = cajaDatos.dejo;
   const cajaRetiro = cajaDatos.retiro;
   const cajaNuevoSaldo =
-    saldoPendiente +
-    (parseFloat(cajaDatos.dejo) || 0) -
-    (parseFloat(cajaDatos.retiro) || 0);
+    Math.floor(parseFloat(cajaDatos.deuda) || 0) +
+    Math.floor(parseFloat(cajaDatos.dejo) || 0) -
+    Math.floor(parseFloat(cajaDatos.retiro) || 0);
 
   // Filas
   const agregarFila = () =>

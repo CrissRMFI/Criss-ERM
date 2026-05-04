@@ -319,7 +319,7 @@ export default function HistorialPage() {
                               : "var(--sage)",
                         }}
                       >
-                        {fmt(detalle.cajaNuevoSaldo)}
+                        {Math.round(detalle.cajaNuevoSaldo)} cajas
                       </span>
                     </div>
                   </div>

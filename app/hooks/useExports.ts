@@ -6,7 +6,7 @@ export function useExport(exportRef: RefObject<HTMLDivElement>) {
     return html2canvas(exportRef.current!, {
       scale: 2,
       useCORS: true,
-      backgroundColor: "#ffffff",
+      backgroundColor: "#f0ebe0",
       logging: false,
       width: 864,
     });

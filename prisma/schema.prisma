@@ -26,10 +26,10 @@ model Factura {
   totalGeneral   Float
   totalPagado    Float
   saldoPendiente Float
-  cajaDeuda      String         @default("")
-  cajaDejo       String         @default("")
-  cajaRetiro     String         @default("")
-  cajaNuevoSaldo Float          @default(0)
+  cajaDeuda      Int         @default(0)
+  cajaDejo       Int         @default(0)
+  cajaRetiro     Int         @default(0)
+  cajaNuevoSaldo Int          @default(0)
   observaciones  String         @default("")
   lineas         LineaFactura[]
   pagos          PagoFactura[]

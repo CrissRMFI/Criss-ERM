@@ -22,10 +22,15 @@ export default function CajasMovimiento({
           <div className="caja" key={key}>
             <label className="caja-lbl">{label}</label>
             <input
-              type={key === "deuda" ? "text" : "number"}
-              placeholder="—"
+              type="number"
+              step="1"
+              min="0"
+              placeholder="0"
               value={datos[key]}
-              onChange={(e) => onChange({ ...datos, [key]: e.target.value })}
+              onChange={(e) => {
+                const val = Math.floor(parseFloat(e.target.value)) || 0;
+                onChange({ ...datos, [key]: val === 0 ? "" : String(val) });
+              }}
             />
           </div>
         ))}

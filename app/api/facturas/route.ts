@@ -29,10 +29,10 @@ export async function POST(req: Request) {
         totalGeneral: body.totalGeneral,
         totalPagado: body.totalPagado,
         saldoPendiente: body.saldoPendiente,
-        cajaDeuda: body.cajaDeuda ?? "",
-        cajaDejo: body.cajaDejo ?? "",
-        cajaRetiro: body.cajaRetiro ?? "",
-        cajaNuevoSaldo: body.cajaNuevoSaldo ?? 0,
+        cajaDeuda: Math.floor(parseInt(body.cajaDeuda) || 0),
+        cajaDejo: Math.floor(parseInt(body.cajaDejo) || 0),
+        cajaRetiro: Math.floor(parseInt(body.cajaRetiro) || 0),
+        cajaNuevoSaldo: Math.floor(parseInt(body.cajaNuevoSaldo) || 0),
         observaciones: body.observaciones ?? "",
         lineas: {
           create: body.lineas.map((l: any) => ({
