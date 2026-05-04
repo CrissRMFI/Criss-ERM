@@ -12,45 +12,50 @@ export async function GET() {
 export async function POST(req: Request) {
   const body = await req.json();
 
-  // Obtener y incrementar número de factura atómicamente
-  const config = await prisma.config.update({
-    where: { id: "singleton" },
-    data: { ultimoNumeroFactura: { increment: 1 } },
+  // Transacción atómica: incrementar número y crear factura juntos
+  const factura = await prisma.$transaction(async (tx) => {
+    const config = await tx.config.update({
+      where: { id: "singleton" },
+      data: { ultimoNumeroFactura: { increment: 1 } },
+    });
+
+    return tx.factura.create({
+      data: {
+        numero: config.ultimoNumeroFactura,
+        fecha: body.fecha,
+        cliente: body.cliente,
+        subtotal: body.subtotal,
+        saldoAnterior: body.saldoAnterior ?? 0,
+        totalGeneral: body.totalGeneral,
+        totalPagado: body.totalPagado,
+        saldoPendiente: body.saldoPendiente,
+        cajaDeuda: body.cajaDeuda ?? "",
+        cajaDejo: body.cajaDejo ?? "",
+        cajaRetiro: body.cajaRetiro ?? "",
+        cajaNuevoSaldo: body.cajaNuevoSaldo ?? 0,
+        observaciones: body.observaciones ?? "",
+        lineas: {
+          create: body.lineas.map((l: any) => ({
+            nombre: l.nombre,
+            qty: l.qty,
+            precio: l.precio,
+            subtotal: l.qty * l.precio,
+          })),
+        },
+        pagos: {
+          create: body.pagos.map((p: any) => ({
+            tipo: p.tipo,
+            detalle: p.detalle ?? "",
+            monto: p.monto,
+          })),
+        },
+      },
+      include: { lineas: true, pagos: true },
+    });
   });
 
-  const factura = await prisma.factura.create({
-    data: {
-      numero: config.ultimoNumeroFactura,
-      fecha: body.fecha,
-      cliente: body.cliente,
-      subtotal: body.subtotal,
-      saldoAnterior: body.saldoAnterior ?? 0,
-      totalGeneral: body.totalGeneral,
-      totalPagado: body.totalPagado,
-      saldoPendiente: body.saldoPendiente,
-      cajaDeuda: body.cajaDeuda ?? "",
-      cajaDejo: body.cajaDejo ?? "",
-      cajaRetiro: body.cajaRetiro ?? "",
-      cajaNuevoSaldo: body.cajaNuevoSaldo ?? 0,
-      observaciones: body.observaciones ?? "",
-      lineas: {
-        create: body.lineas.map((l: any) => ({
-          nombre: l.nombre,
-          qty: l.qty,
-          precio: l.precio,
-          subtotal: l.qty * l.precio,
-        })),
-      },
-      pagos: {
-        create: body.pagos.map((p: any) => ({
-          tipo: p.tipo,
-          detalle: p.detalle ?? "",
-          monto: p.monto,
-        })),
-      },
-    },
-    include: { lineas: true, pagos: true },
+  return NextResponse.json(factura, {
+    headers: { "Cache-Control": "no-store" },
+    status: 201,
   });
-
-  return NextResponse.json(factura, { status: 201 });
 }

@@ -88,6 +88,27 @@ export function useFactura() {
   const eliminarPago = (id: string) =>
     setPagos((ps) => ps.filter((p) => p.id !== id));
 
+  // al final del return de useFactura
+  const reset = () => {
+    setNro(null);
+    setFecha(iso);
+    setCliente("");
+    setSaldoAnt("");
+    setObs("");
+    setCajaDatos({ deuda: "", dejo: "", retiro: "" });
+    setFilas([
+      { id: `r${_rowId++}`, nombre: "", precio: 0, qty: 1 },
+      { id: `r${_rowId++}`, nombre: "", precio: 0, qty: 1 },
+      { id: `r${_rowId++}`, nombre: "", precio: 0, qty: 1 },
+    ]);
+    setPagos([]);
+    // Pedir nuevo número
+    facturasService
+      .getNextNumero()
+      .then(setNro)
+      .catch(() => setNro(null));
+  };
+
   return {
     nro,
     fecha,
@@ -118,5 +139,6 @@ export function useFactura() {
     totalGeneral,
     totalPagado,
     saldoPendiente,
+    reset,
   };
 }

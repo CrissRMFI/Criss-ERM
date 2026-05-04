@@ -22,6 +22,23 @@ export default function FacturaPage() {
   const [waOpen, setWaOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const buildFacturaData = () => ({
+    fecha: factura.fecha,
+    cliente: factura.cliente,
+    subtotal: factura.subtotal,
+    saldoAnterior: factura.saldoAnt === "" ? 0 : factura.saldoAnt,
+    totalGeneral: factura.totalGeneral,
+    totalPagado: factura.totalPagado,
+    saldoPendiente: factura.saldoPendiente,
+    cajaDeuda: factura.cajaDatos.deuda,
+    cajaDejo: factura.cajaDatos.dejo,
+    cajaRetiro: factura.cajaDatos.retiro,
+    cajaNuevoSaldo: factura.cajaNuevoSaldo,
+    observaciones: factura.obs,
+    lineas: factura.filas.filter((f) => f.nombre),
+    pagos: factura.pagos,
+  });
+
   const handleGuardar = async () => {
     if (!factura.cliente.trim()) {
       showToast("Ingresá el nombre del cliente");
@@ -35,23 +52,9 @@ export default function FacturaPage() {
 
     setSaving(true);
     try {
-      await facturasService.create({
-        fecha: factura.fecha,
-        cliente: factura.cliente,
-        subtotal: factura.subtotal,
-        saldoAnterior: factura.saldoAnt === "" ? 0 : factura.saldoAnt,
-        totalGeneral: factura.totalGeneral,
-        totalPagado: factura.totalPagado,
-        saldoPendiente: factura.saldoPendiente,
-        cajaDeuda: factura.cajaDatos.deuda,
-        cajaDejo: factura.cajaDatos.dejo,
-        cajaRetiro: factura.cajaDatos.retiro,
-        cajaNuevoSaldo: factura.cajaNuevoSaldo,
-        observaciones: factura.obs,
-        lineas,
-        pagos: factura.pagos,
-      });
+      await facturasService.create(buildFacturaData());
       showToast("Factura guardada");
+      setTimeout(() => factura.reset(), 1500);
     } catch {
       showToast("Error al guardar");
     } finally {
@@ -61,8 +64,24 @@ export default function FacturaPage() {
 
   const handleWA = async () => {
     setWaOpen(false);
-    showToast("Generando imagen…");
-    await exportWA(factura.nro, factura.cliente);
+
+    const lineas = factura.filas.filter((f) => f.nombre);
+    if (!factura.cliente.trim() || !lineas.length) {
+      showToast("Completá cliente y productos antes de enviar");
+      return;
+    }
+
+    showToast("Guardando y generando imagen…");
+    setSaving(true);
+    try {
+      await facturasService.create(buildFacturaData());
+      await exportWA(factura.nro, factura.cliente);
+      setTimeout(() => factura.reset(), 1500);
+    } catch {
+      showToast("Error al procesar");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
