@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useHistorial } from "../../hooks/useHistorial";
 
 function fmt(n: number) {
-  return "$ " + n.toFixed(2);
+  return "$ " + Math.round(n).toLocaleString("es-AR");
 }
 
 export default function HistorialPage() {

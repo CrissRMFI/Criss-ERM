@@ -43,7 +43,7 @@ export default function ProductosTable({
           <tr key={p.id}>
             <td>{p.nombre}</td>
             <td className="r" style={{ fontWeight: 600 }}>
-              $ {p.precio.toFixed(2)}
+              $ {Math.round(p.precio).toLocaleString("es-AR")}
             </td>
             <td className="r">
               <div className="row-actions">

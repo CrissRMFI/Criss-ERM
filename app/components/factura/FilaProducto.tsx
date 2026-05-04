@@ -11,7 +11,7 @@ interface Props {
 }
 
 function fmt(n: number) {
-  return "$ " + n.toFixed(2);
+  return "$ " + Math.round(n).toLocaleString("es-AR");
 }
 
 export default function FilaProductoRow({ fila, onChange, onDelete }: Props) {
