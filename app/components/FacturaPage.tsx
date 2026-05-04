@@ -50,12 +50,11 @@ function FilaRow({
   const ddRef = useRef<HTMLDivElement>(null);
 
   const search = useCallback(async (q: string) => {
-    if (!q.trim()) {
-      setResults([]);
-      return;
-    }
     try {
-      const res = await fetch(`/api/productos?q=${encodeURIComponent(q)}`);
+      const url = q.trim()
+        ? `/api/productos?q=${encodeURIComponent(q)}`
+        : "/api/productos";
+      const res = await fetch(url);
       setResults(await res.json());
     } catch {
       setResults([]);
