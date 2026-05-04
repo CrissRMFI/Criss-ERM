@@ -1,13 +1,18 @@
 // app/layout.tsx
-import type { Metadata } from 'next'
-import './globals.css'
+import type { Metadata } from "next";
+import "./globals.css";
+import App from "./App";
 
 export const metadata: Metadata = {
-  title: 'Factura',
-  description: 'Sistema de facturación',
-}
+  title: "Criss ERM",
+  description: "Sistema Criss ERM",
+};
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="es">
       <head>
@@ -16,7 +21,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <App />
+        <div className="page active">{children}</div>
+      </body>
     </html>
-  )
+  );
 }
