@@ -4,23 +4,59 @@ import { useRef, useState } from "react";
 import { useFactura } from "../../hooks/useFactura";
 import { useExport } from "../../hooks/useExports";
 import { useToast } from "../../hooks/useToast";
+import { facturasService } from "../../services/facturas.service";
 import FacturaHeader from "./FacturaHeader";
 import FilaProductoRow from "./FilaProducto";
 import FilaPago from "./FilaPago";
 import TotalesBox from "./TotalesBox";
 import CajasMovimiento from "./CajasMovimiento";
+import FacturaExport from "./FacturaExport";
 import Toast from "../../ui/Toast";
 
 export default function FacturaPage() {
   const cardRef = useRef<HTMLDivElement>(null);
+  const exportRef = useRef<HTMLDivElement>(null);
   const factura = useFactura();
-  const { exportPDF, exportWA } = useExport(cardRef);
+  const { exportWA } = useExport(exportRef);
   const { toast, showToast } = useToast();
   const [waOpen, setWaOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const handlePDF = async () => {
-    showToast("Generando PDF…");
-    await exportPDF(factura.nro, factura.cliente, factura.fecha);
+  const handleGuardar = async () => {
+    if (!factura.cliente.trim()) {
+      showToast("Ingresá el nombre del cliente");
+      return;
+    }
+    const lineas = factura.filas.filter((f) => f.nombre);
+    if (!lineas.length) {
+      showToast("Agregá al menos un producto");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await facturasService.create({
+        fecha: factura.fecha,
+        cliente: factura.cliente,
+        subtotal: factura.subtotal,
+        saldoAnterior: factura.saldoAnt === "" ? 0 : factura.saldoAnt,
+        totalGeneral: factura.totalGeneral,
+        totalPagado: factura.totalPagado,
+        saldoPendiente: factura.saldoPendiente,
+        cajaDeuda: factura.cajaDatos.deuda,
+        cajaDejo: factura.cajaDatos.dejo,
+        cajaRetiro: factura.cajaDatos.retiro,
+        cajaNuevoSaldo: factura.cajaNuevoSaldo,
+        observaciones: factura.obs,
+        lineas,
+        pagos: factura.pagos,
+      });
+      showToast("Factura guardada");
+    } catch {
+      showToast("Error al guardar");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleWA = async () => {
@@ -40,31 +76,21 @@ export default function FacturaPage() {
             </svg>
             WhatsApp
           </button>
-          <button className="btn btn-primary" onClick={handlePDF}>
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            PDF
+          <button
+            className="btn btn-primary"
+            onClick={handleGuardar}
+            disabled={saving}
+          >
+            {saving ? "Guardando…" : "Guardar"}
           </button>
         </div>
       </div>
 
       <div className="card" id="invoice-card" ref={cardRef}>
         <FacturaHeader
-          nro={factura.nro}
+          nro={factura.nro?.toString() ?? "…"}
           fecha={factura.fecha}
-          onNroChange={factura.setNro}
+          onNroChange={() => {}}
           onFechaChange={factura.setFecha}
         />
 
@@ -143,6 +169,7 @@ export default function FacturaPage() {
             <div className="sec-title">Movimiento de cajas</div>
             <CajasMovimiento
               datos={factura.cajaDatos}
+              nuevoSaldo={factura.cajaNuevoSaldo}
               onChange={factura.setCajaDatos}
             />
           </div>
@@ -161,6 +188,35 @@ export default function FacturaPage() {
         <div className="inv-footer">
           <span>Generado el {factura.fechaDisplay}</span>
           <span>Documento no fiscal · Solo para control interno</span>
+        </div>
+      </div>
+
+      {/* Componente invisible para exportar — diseño fijo 800px */}
+      <div
+        style={{
+          position: "absolute",
+          top: -9999,
+          left: -9999,
+          pointerEvents: "none",
+        }}
+      >
+        <div ref={exportRef}>
+          <FacturaExport
+            nro={factura.nro}
+            fecha={factura.fecha}
+            cliente={factura.cliente}
+            filas={factura.filas}
+            subtotal={factura.subtotal}
+            saldoAnt={factura.saldoAnt}
+            totalGeneral={factura.totalGeneral}
+            pagos={factura.pagos}
+            totalPagado={factura.totalPagado}
+            saldoPendiente={factura.saldoPendiente}
+            cajaDatos={factura.cajaDatos}
+            cajaNuevoSaldo={factura.cajaNuevoSaldo}
+            obs={factura.obs}
+            fechaDisplay={factura.fechaDisplay}
+          />
         </div>
       </div>
 
