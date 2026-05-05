@@ -13,6 +13,7 @@ export default function FilaPago({ pago, tipos, onChange, onDelete }: Props) {
       <select
         value={pago.tipo}
         onChange={(e) => onChange({ ...pago, tipo: e.target.value })}
+        className="flex-shrink-0"
       >
         {tipos.map((t) => (
           <option key={t}>{t}</option>
@@ -20,22 +21,22 @@ export default function FilaPago({ pago, tipos, onChange, onDelete }: Props) {
       </select>
       <input
         type="text"
-        className="pay-detail"
+        className="pay-detail min-w-0 flex-1"
         placeholder="Detalle…"
         value={pago.detalle}
         onChange={(e) => onChange({ ...pago, detalle: e.target.value })}
       />
       <input
         type="number"
-        className="pay-amount"
-        placeholder="0.00"
-        step="0.01"
+        className="pay-amount w-24 flex-shrink-0"
+        placeholder="0"
+        step="1"
         value={pago.monto || ""}
         onChange={(e) =>
           onChange({ ...pago, monto: parseFloat(e.target.value) || 0 })
         }
       />
-      <button className="del-btn" onClick={onDelete}>
+      <button className="del-btn flex-shrink-0" onClick={onDelete}>
         ✕
       </button>
     </div>

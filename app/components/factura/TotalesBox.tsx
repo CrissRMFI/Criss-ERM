@@ -31,8 +31,8 @@ export default function TotalesBox({
           <input
             type="number"
             className="t-inp"
-            placeholder="0.00"
-            step="0.01"
+            placeholder="0"
+            step="1"
             value={saldoAnt}
             onChange={(e) =>
               onSaldoAntChange(
@@ -47,7 +47,7 @@ export default function TotalesBox({
         </div>
       </div>
 
-      <div className="totals-box" style={{ marginTop: 12 }}>
+      <div className="totals-box mt-3">
         <div className="t-row">
           <span className="t-lbl">Total Pagado</span>
           <span className="t-val" style={{ color: "var(--sage)" }}>
