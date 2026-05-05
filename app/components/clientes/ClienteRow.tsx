@@ -18,7 +18,7 @@ export default function ClienteRow({
   onToggle,
 }: Props) {
   return (
-    <tr style={{ opacity: c.activo ? 1 : 0.5 }}>
+    <tr className={c.activo ? "" : "opacity-50"}>
       <td>
         <div className="font-semibold">{c.nombre}</div>
         {c.telefono && (
@@ -33,10 +33,7 @@ export default function ClienteRow({
       <td className="r">
         <div className="flex flex-col items-end gap-0.5">
           <span
-            className="font-bold text-sm"
-            style={{
-              color: c.deudaMonetaria > 0 ? "var(--rust)" : "var(--sage)",
-            }}
+            className={`font-bold text-sm ${c.deudaMonetaria > 0 ? "text-[var(--rust)]" : "text-[var(--sage)]"}`}
           >
             {fmt(c.deudaMonetaria)}
           </span>
@@ -50,11 +47,12 @@ export default function ClienteRow({
 
       <td className="hidden sm:table-cell">
         <span
-          className="text-xs font-bold uppercase tracking-wide px-2 py-0.5 rounded-full"
-          style={{
-            background: c.activo ? "#e8f5e9" : "#f5f5f5",
-            color: c.activo ? "var(--sage)" : "var(--muted)",
-          }}
+          className={`text-xs font-bold uppercase tracking-wide px-2 py-0.5 rounded-full
+          ${
+            c.activo
+              ? "bg-green-100 text-[var(--sage)]"
+              : "bg-gray-100 text-[var(--muted)]"
+          }`}
         >
           {c.activo ? "Activo" : "Inactivo"}
         </span>
@@ -80,7 +78,6 @@ export default function ClienteRow({
           >
             {c.activo ? "Desactivar" : "Activar"}
           </button>
-          {/* Mobile: ícono compacto */}
           <button
             className="btn btn-ghost btn-sm sm:hidden"
             onClick={() => onEditar(c)}
