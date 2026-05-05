@@ -40,9 +40,9 @@ export default function DetalleModal({ detalle, onClose }: Props) {
         onClick={(e) => e.target === e.currentTarget && onClose()}
       >
         <div className="modal w-[90%] max-w-xl max-h-[85vh] overflow-y-auto">
-          <div className="flex justify-between items-center mb-4">
-            <h3>Factura #{detalle.numero}</h3>
-            <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+            <h3 className="text-lg">Factura #{detalle.numero}</h3>
+            <div className="flex gap-2 flex-shrink-0">
               <button
                 className="btn btn-wa btn-sm"
                 onClick={handleWA}
