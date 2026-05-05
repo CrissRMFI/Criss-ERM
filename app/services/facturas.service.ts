@@ -10,8 +10,9 @@ export const facturasService = {
   },
 
   create: async (data: {
+    clienteId?: string;
+    clienteNombre: string;
     fecha: string;
-    cliente: string;
     subtotal: number;
     saldoAnterior: number;
     totalGeneral: number;

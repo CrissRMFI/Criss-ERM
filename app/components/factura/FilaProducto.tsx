@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
 import { FilaProducto, Producto } from "../../types";
-import { productosService } from "../../services/productos.service";
 
 interface Props {
   fila: FilaProducto;
+  query: string;
+  results: Producto[];
+  onQueryChange: (filaId: string, query: string) => void;
+  onSelect: (filaId: string, p: Producto) => void;
   onChange: (f: FilaProducto) => void;
   onDelete: () => void;
 }
@@ -14,66 +16,41 @@ function fmt(n: number) {
   return "$ " + Math.round(n).toLocaleString("es-AR");
 }
 
-export default function FilaProductoRow({ fila, onChange, onDelete }: Props) {
-  const [query, setQuery] = useState(fila.nombre);
-  const [results, setResults] = useState<Producto[]>([]);
-  const [ddOpen, setDdOpen] = useState(false);
-  const ddRef = useRef<HTMLDivElement>(null);
-
-  const search = useCallback(async (q: string) => {
-    try {
-      setResults(await productosService.getAll(q));
-    } catch {
-      setResults([]);
-    }
-  }, []);
-
-  useEffect(() => {
-    const t = setTimeout(() => search(query), 200);
-    return () => clearTimeout(t);
-  }, [query, search]);
-
-  const pick = (p: Producto) => {
-    setQuery(p.nombre);
-    setDdOpen(false);
-    onChange({ ...fila, nombre: p.nombre, precio: p.precio });
-  };
+export default function FilaProductoRow({
+  fila,
+  query,
+  results,
+  onQueryChange,
+  onSelect,
+  onChange,
+  onDelete,
+}: Props) {
+  const ddOpen = results.length > 0;
 
   return (
     <tr>
-      <td>
-        <div className="prod-wrap" ref={ddRef}>
+      <td className="relative">
+        <div className="prod-wrap">
           <input
             className="td-in pname"
             type="text"
             placeholder="Buscar producto…"
             value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setDdOpen(true);
-            }}
-            onFocus={() => {
-              search(query);
-              setDdOpen(true);
-            }}
-            onBlur={() => setTimeout(() => setDdOpen(false), 160)}
+            onChange={(e) => onQueryChange(fila.id, e.target.value)}
+            onFocus={() => onQueryChange(fila.id, query)}
           />
           {ddOpen && (
             <div className="dd open">
-              {results.length === 0 ? (
-                <div className="dd-empty">Sin resultados</div>
-              ) : (
-                results.map((p) => (
-                  <div
-                    key={p.id}
-                    className="dd-row"
-                    onMouseDown={() => pick(p)}
-                  >
-                    <span>{p.nombre}</span>
-                    <span className="dd-price">$ {p.precio.toFixed(2)}</span>
-                  </div>
-                ))
-              )}
+              {results.map((p) => (
+                <div
+                  key={p.id}
+                  className="dd-row"
+                  onMouseDown={() => onSelect(fila.id, p)}
+                >
+                  <span>{p.nombre}</span>
+                  <span className="dd-price">{fmt(p.precio)}</span>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -96,11 +73,14 @@ export default function FilaProductoRow({ fila, onChange, onDelete }: Props) {
         <input
           className="td-in price"
           type="number"
-          placeholder="0.00"
-          step="0.01"
+          placeholder="0"
+          step="1"
           value={fila.precio || ""}
           onChange={(e) =>
-            onChange({ ...fila, precio: parseFloat(e.target.value) || 0 })
+            onChange({
+              ...fila,
+              precio: parseFloat(e.target.value) || 0,
+            })
           }
         />
       </td>
