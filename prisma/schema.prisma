@@ -9,11 +9,14 @@ datasource db {
 }
 
 model Producto {
-  id        String   @id @default(cuid())
+  id        String          @id @default(cuid())
   nombre    String
   precio    Float
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  stock     StockLote[]
+  compras   CompraLinea[]
+  traslados TrasladoLinea[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
 }
 
 model Factura {
@@ -60,8 +63,8 @@ model PagoFactura {
 }
 
 model Config {
-  id    String @id @default("singleton")
-  ultimoNumeroFactura Int @default(0)
+  id                  String @id @default("singleton")
+  ultimoNumeroFactura Int    @default(0)
 }
 
 model Cliente {
@@ -74,4 +77,72 @@ model Cliente {
   facturas  Factura[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+}
+
+model Almacen {
+  id               String      @id @default(cuid())
+  nombre           String
+  tipo             AlmacenTipo
+  stock            StockLote[]
+  trasladosOrigen  Traslado[]  @relation("AlmacenOrigen")
+  trasladosDestino Traslado[]  @relation("AlmacenDestino")
+  createdAt        DateTime    @default(now())
+}
+
+enum AlmacenTipo {
+  CENTRAL
+  MOVIL
+}
+
+model Compra {
+  id            String        @id @default(cuid())
+  fecha         String
+  proveedor     String        @default("")
+  observaciones String        @default("")
+  lineas        CompraLinea[]
+  createdAt     DateTime      @default(now())
+}
+
+model CompraLinea {
+  id               String   @id @default(cuid())
+  compra           Compra   @relation(fields: [compraId], references: [id])
+  compraId         String
+  producto         Producto @relation(fields: [productoId], references: [id])
+  productoId       String
+  cantidadTotal    Int
+  cantidadRetirada Int      @default(0)
+  precioCosto      Float
+}
+
+model StockLote {
+  id          String   @id @default(cuid())
+  almacen     Almacen  @relation(fields: [almacenId], references: [id])
+  almacenId   String
+  producto    Producto @relation(fields: [productoId], references: [id])
+  productoId  String
+  cantidad    Int
+  precioCosto Float
+  createdAt   DateTime @default(now())
+}
+
+model Traslado {
+  id            String          @id @default(cuid())
+  origen        Almacen         @relation("AlmacenOrigen", fields: [origenId], references: [id])
+  origenId      String
+  destino       Almacen         @relation("AlmacenDestino", fields: [destinoId], references: [id])
+  destinoId     String
+  fecha         String
+  observaciones String          @default("")
+  lineas        TrasladoLinea[]
+  createdAt     DateTime        @default(now())
+}
+
+model TrasladoLinea {
+  id          String   @id @default(cuid())
+  traslado    Traslado @relation(fields: [trasladoId], references: [id])
+  trasladoId  String
+  producto    Producto @relation(fields: [productoId], references: [id])
+  productoId  String
+  cantidad    Int
+  precioCosto Float
 }
