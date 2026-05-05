@@ -2,8 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import { Cliente } from "../types";
 import { clientesService } from "../services/clientes.service";
 
+export interface ClienteConDeuda extends Cliente {
+  deudaMonetaria: number;
+  deudaCajas: number;
+}
+
 export function useClientes(search = "", soloActivos = true) {
-  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [clientes, setClientes] = useState<ClienteConDeuda[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -11,7 +16,25 @@ export function useClientes(search = "", soloActivos = true) {
     setLoading(true);
     setError(null);
     try {
-      setClientes(await clientesService.getAll(search, soloActivos));
+      const data: Cliente[] = await clientesService.getAll(search, soloActivos);
+
+      // Cargar deuda de cada cliente en paralelo
+      const conDeuda = await Promise.all(
+        data.map(async (c) => {
+          try {
+            const deuda = await clientesService.getDeuda(c.id);
+            return {
+              ...c,
+              deudaMonetaria: deuda.deudaMonetaria,
+              deudaCajas: deuda.deudaCajas,
+            };
+          } catch {
+            return { ...c, deudaMonetaria: 0, deudaCajas: 0 };
+          }
+        }),
+      );
+
+      setClientes(conDeuda);
     } catch (e) {
       setError((e as Error).message);
     } finally {

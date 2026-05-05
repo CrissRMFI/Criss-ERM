@@ -1,107 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Cliente } from "../../types";
-import { useClientes } from "../../hooks/useClientes";
+import { useClientes, ClienteConDeuda } from "../../hooks/useClientes";
 import { useToast } from "../../hooks/useToast";
-import { useHistorial } from "../../hooks/useHistorial";
 import ClienteModal from "./ClienteModal";
+import ClienteRow from "./ClienteRow";
+import HistorialCliente from "./HistorialCliente";
 import Toast from "../../ui/Toast";
-
-function fmt(n: number) {
-  return "$ " + Math.round(n).toLocaleString("es-AR");
-}
-
-function HistorialCliente({
-  clienteId,
-  onClose,
-}: {
-  clienteId: string;
-  onClose: () => void;
-}) {
-  const { facturas, loading } = useHistorial(clienteId);
-
-  return (
-    <div
-      className="modal-bg open"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <div
-        className="modal"
-        style={{
-          width: "90%",
-          maxWidth: 620,
-          maxHeight: "85vh",
-          overflowY: "auto",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 16,
-          }}
-        >
-          <h3>Historial de facturas</h3>
-          <button className="btn btn-ghost btn-sm" onClick={onClose}>
-            Cerrar
-          </button>
-        </div>
-        {loading ? (
-          <div className="empty-state">Cargando…</div>
-        ) : facturas.length === 0 ? (
-          <div className="empty-state">Sin facturas aún.</div>
-        ) : (
-          <table className="prod-table">
-            <thead>
-              <tr>
-                <th>N°</th>
-                <th>Fecha</th>
-                <th className="r">Total</th>
-                <th className="r">Pagado</th>
-                <th className="r">Pendiente</th>
-              </tr>
-            </thead>
-            <tbody>
-              {facturas.map((f: any) => (
-                <tr key={f.id}>
-                  <td style={{ fontWeight: 700, color: "var(--gold)" }}>
-                    #{f.numero}
-                  </td>
-                  <td>{f.fecha}</td>
-                  <td className="r" style={{ fontWeight: 600 }}>
-                    {fmt(f.totalGeneral)}
-                  </td>
-                  <td className="r" style={{ color: "var(--sage)" }}>
-                    {fmt(f.totalPagado)}
-                  </td>
-                  <td
-                    className="r"
-                    style={{
-                      fontWeight: 700,
-                      color:
-                        f.saldoPendiente > 0 ? "var(--rust)" : "var(--sage)",
-                    }}
-                  >
-                    {fmt(f.saldoPendiente)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-    </div>
-  );
-}
 
 export default function ClientesPage() {
   const [search, setSearch] = useState("");
   const [mostrarInactivos, setMostrarInactivos] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editando, setEditando] = useState<Cliente | null>(null);
-  const [historialId, setHistorialId] = useState<string | null>(null);
+  const [editando, setEditando] = useState<ClienteConDeuda | null>(null);
+  const [historialCliente, setHistorialCliente] =
+    useState<ClienteConDeuda | null>(null);
   const { clientes, loading, crear, actualizar, toggleActivo } = useClientes(
     search,
     !mostrarInactivos,
@@ -118,14 +31,14 @@ export default function ClientesPage() {
     }
   };
 
-  const handleToggle = async (c: Cliente) => {
+  const handleToggle = async (c: ClienteConDeuda) => {
     await toggleActivo(c.id, !c.activo);
     showToast(c.activo ? "Cliente desactivado" : "Cliente activado");
   };
 
   return (
     <>
-      <div className="page-header">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
         <h1 className="page-title">Clientes</h1>
         <button
           className="btn btn-primary"
@@ -138,10 +51,8 @@ export default function ClientesPage() {
         </button>
       </div>
 
-      <div
-        style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}
-      >
-        <div className="search-bar" style={{ flex: 1, marginBottom: 0 }}>
+      <div className="flex flex-wrap gap-3 mb-4">
+        <div className="search-bar flex-1 min-w-[200px] mb-0">
           <input
             type="text"
             placeholder="Buscar por nombre…"
@@ -149,16 +60,7 @@ export default function ClientesPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <label
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            fontSize: "0.83rem",
-            color: "var(--muted)",
-            cursor: "pointer",
-          }}
-        >
+        <label className="flex items-center gap-2 text-sm text-[var(--muted)] cursor-pointer">
           <input
             type="checkbox"
             checked={mostrarInactivos}
@@ -174,7 +76,7 @@ export default function ClientesPage() {
           : `${clientes.length} cliente${clientes.length !== 1 ? "s" : ""}`}
       </div>
 
-      <div className="card" style={{ overflowX: "auto" }}>
+      <div className="card overflow-x-auto">
         {loading ? (
           <div className="empty-state">Cargando…</div>
         ) : clientes.length === 0 ? (
@@ -188,62 +90,24 @@ export default function ClientesPage() {
             <thead>
               <tr>
                 <th>Nombre</th>
-                <th>Teléfono</th>
-                <th>Dirección</th>
-                <th>Estado</th>
+                <th className="hidden md:table-cell">Dirección</th>
+                <th className="r">Deuda actual</th>
+                <th className="hidden sm:table-cell">Estado</th>
                 <th className="r">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {clientes.map((c) => (
-                <tr key={c.id} style={{ opacity: c.activo ? 1 : 0.5 }}>
-                  <td style={{ fontWeight: 600 }}>{c.nombre}</td>
-                  <td style={{ color: "var(--muted)" }}>{c.telefono || "—"}</td>
-                  <td style={{ color: "var(--muted)" }}>
-                    {c.direccion || "—"}
-                  </td>
-                  <td>
-                    <span
-                      style={{
-                        fontSize: "0.72rem",
-                        fontWeight: 700,
-                        letterSpacing: 1,
-                        textTransform: "uppercase",
-                        padding: "2px 8px",
-                        borderRadius: 20,
-                        background: c.activo ? "#e8f5e9" : "#f5f5f5",
-                        color: c.activo ? "var(--sage)" : "var(--muted)",
-                      }}
-                    >
-                      {c.activo ? "Activo" : "Inactivo"}
-                    </span>
-                  </td>
-                  <td className="r">
-                    <div className="row-actions">
-                      <button
-                        className="btn btn-ghost btn-sm"
-                        onClick={() => setHistorialId(c.id)}
-                      >
-                        Historial
-                      </button>
-                      <button
-                        className="btn btn-ghost btn-sm"
-                        onClick={() => {
-                          setEditando(c);
-                          setModalOpen(true);
-                        }}
-                      >
-                        Editar
-                      </button>
-                      <button
-                        className={`btn btn-sm ${c.activo ? "btn-danger" : "btn-ghost"}`}
-                        onClick={() => handleToggle(c)}
-                      >
-                        {c.activo ? "Desactivar" : "Activar"}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                <ClienteRow
+                  key={c.id}
+                  cliente={c}
+                  onHistorial={setHistorialCliente}
+                  onEditar={(c) => {
+                    setEditando(c);
+                    setModalOpen(true);
+                  }}
+                  onToggle={handleToggle}
+                />
               ))}
             </tbody>
           </table>
@@ -257,10 +121,11 @@ export default function ClientesPage() {
         onSave={handleSave}
       />
 
-      {historialId && (
+      {historialCliente && (
         <HistorialCliente
-          clienteId={historialId}
-          onClose={() => setHistorialId(null)}
+          clienteId={historialCliente.id}
+          clienteNombre={historialCliente.nombre}
+          onClose={() => setHistorialCliente(null)}
         />
       )}
 
