@@ -4,7 +4,6 @@ interface Props {
   totalGeneral: number;
   totalPagado: number;
   saldoPendiente: number;
-  onSaldoAntChange: (v: number | "") => void;
 }
 
 function fmt(n: number) {
@@ -17,7 +16,6 @@ export default function TotalesBox({
   totalGeneral,
   totalPagado,
   saldoPendiente,
-  onSaldoAntChange,
 }: Props) {
   return (
     <>
@@ -28,18 +26,11 @@ export default function TotalesBox({
         </div>
         <div className="t-row">
           <span className="t-lbl">Saldo Anterior</span>
-          <input
-            type="number"
-            className="t-inp"
-            placeholder="0"
-            step="1"
-            value={saldoAnt}
-            onChange={(e) =>
-              onSaldoAntChange(
-                e.target.value === "" ? "" : parseFloat(e.target.value),
-              )
-            }
-          />
+          <span className="t-val" style={{ color: "var(--muted)" }}>
+            {saldoAnt === "" || saldoAnt === 0
+              ? "$ 0"
+              : fmt(saldoAnt as number)}
+          </span>
         </div>
         <div className="t-row grand">
           <span className="t-lbl">Total General</span>

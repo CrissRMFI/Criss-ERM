@@ -5,9 +5,9 @@ interface Props {
 }
 
 const CAJAS = [
-  { key: "deuda", label: "Deuda" },
-  { key: "dejo", label: "Dejo" },
-  { key: "retiro", label: "Retiro" },
+  { key: "deuda", label: "Deuda", readonly: true },
+  { key: "dejo", label: "Dejo", readonly: false },
+  { key: "retiro", label: "Retiro", readonly: false },
 ] as const;
 
 export default function CajasMovimiento({
@@ -18,20 +18,29 @@ export default function CajasMovimiento({
   return (
     <div className="flex flex-col gap-3">
       <div className="cajas-grid">
-        {CAJAS.map(({ key, label }) => (
+        {CAJAS.map(({ key, label, readonly }) => (
           <div className="caja" key={key}>
             <label className="caja-lbl">{label}</label>
-            <input
-              type="number"
-              step="1"
-              min="0"
-              placeholder="0"
-              value={datos[key]}
-              onChange={(e) => {
-                const val = Math.floor(parseFloat(e.target.value)) || 0;
-                onChange({ ...datos, [key]: val === 0 ? "" : String(val) });
-              }}
-            />
+            {readonly ? (
+              <div
+                className="font-bold text-base"
+                style={{ color: "var(--muted)" }}
+              >
+                {datos[key] || "0"}
+              </div>
+            ) : (
+              <input
+                type="number"
+                step="1"
+                min="0"
+                placeholder="0"
+                value={datos[key]}
+                onChange={(e) => {
+                  const val = Math.floor(parseFloat(e.target.value)) || 0;
+                  onChange({ ...datos, [key]: val === 0 ? "" : String(val) });
+                }}
+              />
+            )}
           </div>
         ))}
       </div>

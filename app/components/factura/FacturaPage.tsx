@@ -181,7 +181,6 @@ export default function FacturaPage() {
               totalGeneral={factura.totalGeneral}
               totalPagado={factura.totalPagado}
               saldoPendiente={factura.saldoPendiente}
-              onSaldoAntChange={factura.setSaldoAnt}
             />
           </div>
 
