@@ -30,6 +30,7 @@ export async function POST(req: Request) {
       data: {
         numero: config.ultimoNumeroFactura,
         fecha: body.fecha,
+        clienteId: body.clienteId ?? null,
         clienteNombre: body.clienteNombre ?? "",
         subtotal: body.subtotal,
         saldoAnterior: body.saldoAnterior ?? 0,

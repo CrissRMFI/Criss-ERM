@@ -42,7 +42,11 @@ export default function FacturaPage() {
 
   const handleGuardar = async () => {
     if (!factura.clienteNombre.trim()) {
-      showToast("Seleccioná o ingresá un cliente");
+      showToast("Seleccioná un cliente para continuar");
+      return;
+    }
+    if (!factura.clienteSeleccionado) {
+      showToast("El cliente debe seleccionarse de la lista");
       return;
     }
     setSaving(true);
@@ -59,7 +63,10 @@ export default function FacturaPage() {
 
   const handleWA = async () => {
     setWaOpen(false);
-    showToast("Guardando y generando imagen…");
+    if (!factura.clienteNombre.trim() || !factura.clienteSeleccionado) {
+      showToast("Seleccioná un cliente de la lista para continuar");
+      return;
+    }
     setSaving(true);
     try {
       await facturasService.create(buildFacturaData());
