@@ -5,6 +5,8 @@ import { useCliente } from "../../hooks/useCliente";
 import { useHistorial } from "../../hooks/useHistorial";
 import { useToast } from "../../hooks/useToast";
 import DetalleModal from "../historial/DetalleModal";
+import RegistrarPagoModal from "./RegistrarPagoModal";
+import { useNextNroFactura } from "../../hooks/useNextNroFactura";
 import Toast from "../../ui/Toast";
 import Link from "next/link";
 
@@ -23,10 +25,13 @@ export default function ClienteHistorialPage({ clienteId }: Props) {
     facturas,
     loading: loadingFacturas,
     anular,
+    refetch,
   } = useHistorial(clienteId, verAnuladas);
   const [detalle, setDetalle] = useState<any | null>(null);
   const [search, setSearch] = useState("");
   const { toast, showToast } = useToast();
+  const [pagoOpen, setPagoOpen] = useState(false);
+  const nroFactura = useNextNroFactura();
 
   const filtradas = facturas.filter(
     (f) => String(f.numero).includes(search) || f.fecha.includes(search),
@@ -68,6 +73,11 @@ export default function ClienteHistorialPage({ clienteId }: Props) {
             </div>
           )}
         </div>
+        {ultimaFactura && (
+          <button className="btn btn-primary" onClick={() => setPagoOpen(true)}>
+            + Registrar pago
+          </button>
+        )}
       </div>
 
       {/* DEUDA ACTUAL */}
@@ -224,6 +234,19 @@ export default function ClienteHistorialPage({ clienteId }: Props) {
       )}
 
       <Toast msg={toast.msg} show={toast.show} />
+      {pagoOpen && ultimaFactura && cliente && (
+        <RegistrarPagoModal
+          cliente={cliente}
+          deudaMonetaria={ultimaFactura.saldoPendiente}
+          deudaCajas={ultimaFactura.cajaNuevoSaldo}
+          nroFactura={nroFactura}
+          onClose={() => setPagoOpen(false)}
+          onGuardado={() => {
+            setPagoOpen(false);
+            refetch();
+          }}
+        />
+      )}
     </>
   );
 }

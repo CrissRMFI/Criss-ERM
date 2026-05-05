@@ -530,16 +530,18 @@ textarea.field-input {
   flex-direction: column;
   gap: 8px;
 }
+
 .pay-item {
   display: flex;
-  gap: 8px;
-  align-items: center;
+  flex-direction: column;
+  gap: 0;
   background: var(--paper);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 9px 13px;
   animation: fadeIn 0.2s ease;
 }
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -550,8 +552,16 @@ textarea.field-input {
     transform: translateY(0);
   }
 }
-.pay-item select,
-.pay-item input {
+.pay-item select {
+  grid-column: 1;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+}
+
+.pay-amount {
+  text-align: right;
+  font-weight: 700;
   border: none;
   background: transparent;
   font-family: "DM Sans", sans-serif;
@@ -559,21 +569,18 @@ textarea.field-input {
   outline: none;
   color: var(--ink);
 }
-.pay-item select {
-  flex: 0 0 145px;
-  font-weight: 600;
-  cursor: pointer;
-}
+
 .pay-detail {
-  flex: 1;
   color: var(--muted);
+  border: none;
+  background: transparent;
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.84rem;
+  outline: none;
 }
-.pay-amount {
-  flex: 0 0 108px;
-  text-align: right;
-  font-weight: 700;
-}
+
 .del-btn {
+  grid-column: 3;
   background: none;
   border: none;
   cursor: pointer;
@@ -582,9 +589,11 @@ textarea.field-input {
   padding: 2px 5px;
   transition: color 0.15s;
 }
+
 .del-btn:hover {
   color: var(--rust);
 }
+
 .add-pay-btn {
   display: inline-flex;
   align-items: center;

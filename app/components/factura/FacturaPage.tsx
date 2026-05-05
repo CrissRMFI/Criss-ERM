@@ -67,10 +67,11 @@ export default function FacturaPage() {
       showToast("Seleccioná un cliente de la lista para continuar");
       return;
     }
+    showToast("Guardando y generando imagen…");
     setSaving(true);
     try {
-      await facturasService.create(buildFacturaData());
-      await exportWA(factura.nro, factura.clienteNombre);
+      const resultado = await facturasService.create(buildFacturaData());
+      await exportWA(resultado.numero, factura.clienteNombre);
       setTimeout(() => factura.reset(), 1500);
     } catch {
       showToast("Error al procesar");
