@@ -66,8 +66,8 @@ export default function ClienteModal({
       className="modal-bg open"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="modal" style={{ maxWidth: 440 }}>
-        <h3>{cliente ? "Editar cliente" : "Nuevo cliente"}</h3>
+      <div className="modal w-[90%] max-w-md">
+        <h3 className="mb-4">{cliente ? "Editar cliente" : "Nuevo cliente"}</h3>
 
         <div className="modal-field">
           <label>Nombre *</label>
@@ -101,31 +101,14 @@ export default function ClienteModal({
         <div className="modal-field">
           <label>Notas internas</label>
           <textarea
+            className="field-input"
             placeholder="Ej: paga los viernes, no fiar más de $50.000…"
             value={notas}
             onChange={(e) => setNotas(e.target.value)}
-            style={{
-              resize: "vertical",
-              minHeight: 70,
-              width: "100%",
-              border: "1px solid var(--border)",
-              borderRadius: 7,
-              padding: "9px 11px",
-              fontFamily: "inherit",
-              fontSize: "0.9rem",
-              background: "var(--paper)",
-              outline: "none",
-            }}
           />
         </div>
 
-        {error && (
-          <p
-            style={{ color: "var(--rust)", fontSize: "0.82rem", marginTop: 4 }}
-          >
-            {error}
-          </p>
-        )}
+        {error && <p className="text-sm text-[var(--rust)] mt-1">{error}</p>}
 
         <div className="modal-btns">
           <button className="btn btn-ghost btn-sm" onClick={onClose}>
