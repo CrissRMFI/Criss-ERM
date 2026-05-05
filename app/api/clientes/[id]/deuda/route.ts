@@ -6,7 +6,10 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   const ultimaFactura = await prisma.factura.findFirst({
-    where: { clienteId: params.id },
+    where: {
+      clienteId: params.id,
+      anulada: false,
+    },
     orderBy: { createdAt: "desc" },
     select: {
       saldoPendiente: true,

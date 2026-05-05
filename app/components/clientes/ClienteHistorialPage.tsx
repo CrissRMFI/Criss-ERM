@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { useCliente } from "../../hooks/useCliente";
 import { useHistorial } from "../../hooks/useHistorial";
+import { useToast } from "../../hooks/useToast";
 import DetalleModal from "../historial/DetalleModal";
+import Toast from "../../ui/Toast";
 import Link from "next/link";
 
 function fmt(n: number) {
@@ -16,13 +18,28 @@ interface Props {
 
 export default function ClienteHistorialPage({ clienteId }: Props) {
   const { cliente, loading: loadingCliente } = useCliente(clienteId);
-  const { facturas, loading: loadingFacturas } = useHistorial(clienteId);
+  const [verAnuladas, setVerAnuladas] = useState(false);
+  const {
+    facturas,
+    loading: loadingFacturas,
+    anular,
+  } = useHistorial(clienteId, verAnuladas);
   const [detalle, setDetalle] = useState<any | null>(null);
   const [search, setSearch] = useState("");
+  const { toast, showToast } = useToast();
 
   const filtradas = facturas.filter(
     (f) => String(f.numero).includes(search) || f.fecha.includes(search),
   );
+
+  // Última factura no anulada del cliente
+  const ultimaFactura = facturas.find((f) => !f.anulada);
+
+  const handleAnular = async (id: string) => {
+    await anular(id);
+    setDetalle(null);
+    showToast("Factura anulada");
+  };
 
   if (loadingCliente) return <div className="empty-state">Cargando…</div>;
   if (!cliente)
@@ -30,10 +47,9 @@ export default function ClienteHistorialPage({ clienteId }: Props) {
 
   return (
     <>
-      {/* HEADER */}
       <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
         <div>
-          <div className="flex items-center gap-2 mb-1">
+          <div className="mb-1">
             <Link
               href="/clientes"
               className="text-sm text-[var(--muted)] hover:text-[var(--ink)] transition-colors"
@@ -55,7 +71,7 @@ export default function ClienteHistorialPage({ clienteId }: Props) {
       </div>
 
       {/* DEUDA ACTUAL */}
-      {facturas.length > 0 && (
+      {ultimaFactura && (
         <div className="card mb-5 p-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             <div>
@@ -66,12 +82,12 @@ export default function ClienteHistorialPage({ clienteId }: Props) {
                 className="text-xl font-bold"
                 style={{
                   color:
-                    facturas[0].saldoPendiente > 0
+                    ultimaFactura.saldoPendiente > 0
                       ? "var(--rust)"
                       : "var(--sage)",
                 }}
               >
-                {fmt(facturas[0].saldoPendiente)}
+                {fmt(ultimaFactura.saldoPendiente)}
               </div>
             </div>
             <div>
@@ -82,12 +98,12 @@ export default function ClienteHistorialPage({ clienteId }: Props) {
                 className="text-xl font-bold"
                 style={{
                   color:
-                    facturas[0].cajaNuevoSaldo > 0
+                    ultimaFactura.cajaNuevoSaldo > 0
                       ? "var(--rust)"
                       : "var(--sage)",
                 }}
               >
-                {facturas[0].cajaNuevoSaldo} cajas
+                {ultimaFactura.cajaNuevoSaldo} cajas
               </div>
             </div>
             <div>
@@ -95,21 +111,31 @@ export default function ClienteHistorialPage({ clienteId }: Props) {
                 Facturas
               </div>
               <div className="text-xl font-bold text-[var(--ink)]">
-                {facturas.length}
+                {facturas.filter((f) => !f.anulada).length}
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* BUSCAR */}
-      <div className="search-bar mb-4">
-        <input
-          type="text"
-          placeholder="Buscar por número o fecha…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      {/* FILTROS */}
+      <div className="flex flex-wrap gap-3 mb-4">
+        <div className="search-bar flex-1 min-w-[200px] mb-0">
+          <input
+            type="text"
+            placeholder="Buscar por número o fecha…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <label className="flex items-center gap-2 text-sm text-[var(--muted)] cursor-pointer">
+          <input
+            type="checkbox"
+            checked={verAnuladas}
+            onChange={(e) => setVerAnuladas(e.target.checked)}
+          />
+          Ver anuladas
+        </label>
       </div>
 
       <div className="prod-count">
@@ -118,7 +144,6 @@ export default function ClienteHistorialPage({ clienteId }: Props) {
           : `${filtradas.length} factura${filtradas.length !== 1 ? "s" : ""}`}
       </div>
 
-      {/* TABLA */}
       <div className="card overflow-x-auto">
         {loadingFacturas ? (
           <div className="empty-state">Cargando…</div>
@@ -139,8 +164,19 @@ export default function ClienteHistorialPage({ clienteId }: Props) {
             </thead>
             <tbody>
               {filtradas.map((f) => (
-                <tr key={f.id}>
-                  <td className="font-bold text-[var(--gold)]">#{f.numero}</td>
+                <tr key={f.id} className={f.anulada ? "opacity-40" : ""}>
+                  <td>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-[var(--gold)]">
+                        #{f.numero}
+                      </span>
+                      {f.anulada && (
+                        <span className="text-xs font-bold uppercase px-1.5 py-0.5 rounded bg-red-100 text-red-500">
+                          Anulada
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td className="hidden sm:table-cell text-sm">{f.fecha}</td>
                   <td className="r font-semibold hidden sm:table-cell">
                     {fmt(f.totalGeneral)}
@@ -179,8 +215,15 @@ export default function ClienteHistorialPage({ clienteId }: Props) {
       </div>
 
       {detalle && (
-        <DetalleModal detalle={detalle} onClose={() => setDetalle(null)} />
+        <DetalleModal
+          detalle={detalle}
+          onClose={() => setDetalle(null)}
+          onAnular={handleAnular}
+          puedeAnular={ultimaFactura?.id === detalle.id}
+        />
       )}
+
+      <Toast msg={toast.msg} show={toast.show} />
     </>
   );
 }

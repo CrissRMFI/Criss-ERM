@@ -33,6 +33,8 @@ model Factura {
   cajaRetiro     Int            @default(0)
   cajaNuevoSaldo Int            @default(0)
   observaciones  String         @default("")
+  anulada        Boolean        @default(false)
+  anuladaAt      DateTime?
   lineas         LineaFactura[]
   pagos          PagoFactura[]
   createdAt      DateTime       @default(now())

@@ -11,16 +11,36 @@ function fmt(n: number) {
 }
 
 export default function HistorialPage() {
-  const { facturas, loading, error } = useHistorial();
+  const [verAnuladas, setVerAnuladas] = useState(false);
+  const { facturas, loading, error, anular } = useHistorial(
+    undefined,
+    verAnuladas,
+  );
   const [search, setSearch] = useState("");
   const [detalle, setDetalle] = useState<any | null>(null);
-  const { toast } = useToast();
+  const { toast, showToast } = useToast();
 
   const filtradas = facturas.filter(
     (f) =>
       f.clienteNombre.toLowerCase().includes(search.toLowerCase()) ||
       String(f.numero).includes(search),
   );
+
+  const handleAnular = async (id: string) => {
+    await anular(id);
+    setDetalle(null);
+    showToast("Factura anulada");
+  };
+
+  // La última factura no anulada de cada cliente
+  const ultimasPorCliente = new Set<string>();
+  facturas.forEach((f) => {
+    if (!f.anulada && f.clienteId && !ultimasPorCliente.has(f.clienteId)) {
+      ultimasPorCliente.add(f.clienteId + ":" + f.id);
+    }
+  });
+  const esUltimaFactura = (f: any) =>
+    f.clienteId && ultimasPorCliente.has(f.clienteId + ":" + f.id);
 
   if (error)
     return <div className="empty-state">Error al cargar el historial.</div>;
@@ -29,6 +49,14 @@ export default function HistorialPage() {
     <>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
         <h1 className="page-title">Historial</h1>
+        <label className="flex items-center gap-2 text-sm text-[var(--muted)] cursor-pointer">
+          <input
+            type="checkbox"
+            checked={verAnuladas}
+            onChange={(e) => setVerAnuladas(e.target.checked)}
+          />
+          Ver anuladas
+        </label>
       </div>
 
       <div className="search-bar mb-4">
@@ -66,8 +94,19 @@ export default function HistorialPage() {
             </thead>
             <tbody>
               {filtradas.map((f) => (
-                <tr key={f.id}>
-                  <td className="font-bold text-[var(--gold)]">#{f.numero}</td>
+                <tr key={f.id} className={f.anulada ? "opacity-40" : ""}>
+                  <td>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-[var(--gold)]">
+                        #{f.numero}
+                      </span>
+                      {f.anulada && (
+                        <span className="text-xs font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-red-100 text-red-500">
+                          Anulada
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td className="hidden sm:table-cell text-sm">{f.fecha}</td>
                   <td className="font-medium">{f.clienteNombre}</td>
                   <td className="r font-semibold hidden sm:table-cell">
@@ -106,7 +145,12 @@ export default function HistorialPage() {
       </div>
 
       {detalle && (
-        <DetalleModal detalle={detalle} onClose={() => setDetalle(null)} />
+        <DetalleModal
+          detalle={detalle}
+          onClose={() => setDetalle(null)}
+          onAnular={handleAnular}
+          puedeAnular={esUltimaFactura(detalle)}
+        />
       )}
 
       <Toast msg={toast.msg} show={toast.show} />

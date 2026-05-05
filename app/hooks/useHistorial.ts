@@ -1,22 +1,30 @@
 import { useState, useEffect } from "react";
 import { facturasService } from "../services/facturas.service";
 
-export function useHistorial(clienteId?: string) {
+export function useHistorial(clienteId?: string, verAnuladas = false) {
   const [facturas, setFacturas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetch = async () => {
+    setLoading(true);
+    try {
+      setFacturas(await facturasService.getAll(clienteId, verAnuladas));
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const url = clienteId
-      ? `/api/facturas?clienteId=${clienteId}`
-      : "/api/facturas";
+    fetch();
+  }, [clienteId, verAnuladas]);
 
-    fetch(url)
-      .then((r) => r.json())
-      .then(setFacturas)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, [clienteId]);
+  const anular = async (id: string) => {
+    await facturasService.anular(id);
+    await fetch();
+  };
 
-  return { facturas, loading, error };
+  return { facturas, loading, error, anular, refetch: fetch };
 }

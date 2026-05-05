@@ -4,9 +4,13 @@ import { prisma } from "@/lib/prisma";
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const clienteId = searchParams.get("clienteId");
+  const verAnuladas = searchParams.get("anuladas") === "true";
 
   const facturas = await prisma.factura.findMany({
-    where: clienteId ? { clienteId } : undefined,
+    where: {
+      ...(clienteId ? { clienteId } : {}),
+      ...(!verAnuladas ? { anulada: false } : {}),
+    },
     include: { lineas: true, pagos: true },
     orderBy: { createdAt: "desc" },
   });
