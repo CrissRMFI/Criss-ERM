@@ -32,25 +32,22 @@ export default function ProductosPage() {
     showToast("Producto eliminado");
   };
 
-  const abrirNuevo = () => {
-    setEditando(null);
-    setModalOpen(true);
-  };
-  const abrirEditar = (p: Producto) => {
-    setEditando(p);
-    setModalOpen(true);
-  };
-
   return (
     <>
-      <div className="page-header">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
         <h1 className="page-title">Base de Productos</h1>
-        <button className="btn btn-primary" onClick={abrirNuevo}>
+        <button
+          className="btn btn-primary"
+          onClick={() => {
+            setEditando(null);
+            setModalOpen(true);
+          }}
+        >
           + Nuevo producto
         </button>
       </div>
 
-      <div className="search-bar">
+      <div className="search-bar mb-4">
         <input
           type="text"
           placeholder="Buscar por nombre…"
@@ -65,12 +62,15 @@ export default function ProductosPage() {
           : `${productos.length} producto${productos.length !== 1 ? "s" : ""}`}
       </div>
 
-      <div className="card" style={{ overflowX: "auto" }}>
+      <div className="card overflow-x-auto">
         <ProductosTable
           productos={productos}
           loading={loading}
           search={search}
-          onEdit={abrirEditar}
+          onEdit={(p) => {
+            setEditando(p);
+            setModalOpen(true);
+          }}
           onDelete={handleDelete}
         />
       </div>

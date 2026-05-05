@@ -5,7 +5,7 @@ import { Producto } from "../../types";
 
 interface Props {
   open: boolean;
-  producto: Producto | null; // null = nuevo, objeto = editar
+  producto: Producto | null;
   onClose: () => void;
   onSave: (data: { nombre: string; precio: number }) => Promise<void>;
 }
@@ -58,14 +58,16 @@ export default function ProductoModal({
       className="modal-bg open"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="modal">
-        <h3>{producto ? "Editar producto" : "Nuevo producto"}</h3>
+      <div className="modal w-[90%] max-w-sm">
+        <h3 className="mb-4">
+          {producto ? "Editar producto" : "Nuevo producto"}
+        </h3>
 
         <div className="modal-field">
           <label>Nombre del producto</label>
           <input
             type="text"
-            placeholder="Ej: Leche entera 1L"
+            placeholder="Ej: Coca 1.5L x8"
             value={nombre}
             autoFocus
             onChange={(e) => setNombre(e.target.value)}
@@ -77,8 +79,8 @@ export default function ProductoModal({
           <label>Precio de venta</label>
           <input
             type="number"
-            placeholder="0.00"
-            step="0.01"
+            placeholder="0"
+            step="1"
             min="0"
             value={precio}
             onChange={(e) => setPrecio(e.target.value)}
@@ -86,7 +88,7 @@ export default function ProductoModal({
           />
         </div>
 
-        {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
+        {error && <p className="text-sm text-[var(--rust)] mt-1">{error}</p>}
 
         <div className="modal-btns">
           <button className="btn btn-ghost btn-sm" onClick={onClose}>

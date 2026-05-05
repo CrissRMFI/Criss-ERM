@@ -15,9 +15,7 @@ export default function ProductosTable({
   onEdit,
   onDelete,
 }: Props) {
-  if (loading) {
-    return <div className="empty-state">Cargando…</div>;
-  }
+  if (loading) return <div className="empty-state">Cargando…</div>;
 
   if (!productos.length) {
     return (
@@ -41,8 +39,8 @@ export default function ProductosTable({
       <tbody>
         {productos.map((p) => (
           <tr key={p.id}>
-            <td>{p.nombre}</td>
-            <td className="r" style={{ fontWeight: 600 }}>
+            <td className="font-medium">{p.nombre}</td>
+            <td className="r font-semibold">
               $ {Math.round(p.precio).toLocaleString("es-AR")}
             </td>
             <td className="r">
