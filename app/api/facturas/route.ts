@@ -1,12 +1,19 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const clienteId = searchParams.get("clienteId");
+
   const facturas = await prisma.factura.findMany({
+    where: clienteId ? { clienteId } : undefined,
     include: { lineas: true, pagos: true },
     orderBy: { createdAt: "desc" },
   });
-  return NextResponse.json(facturas);
+
+  return NextResponse.json(facturas, {
+    headers: { "Cache-Control": "no-store" },
+  });
 }
 
 export async function POST(req: Request) {

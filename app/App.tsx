@@ -12,6 +12,7 @@ export default function Nav() {
     { href: "/factura", label: "Factura" },
     { href: "/productos", label: "Productos" },
     { href: "/historial", label: "Historial" },
+    { href: "/clientes", label: "Clientes" },
   ];
 
   return (

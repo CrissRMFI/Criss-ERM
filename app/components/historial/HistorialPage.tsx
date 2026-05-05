@@ -14,7 +14,7 @@ export default function HistorialPage() {
 
   const filtradas = facturas.filter(
     (f) =>
-      f.cliente.toLowerCase().includes(search.toLowerCase()) ||
+      f.clienteNombre.toLowerCase().includes(search.toLowerCase()) ||
       String(f.numero).includes(search),
   );
 
@@ -67,7 +67,7 @@ export default function HistorialPage() {
                     #{f.numero}
                   </td>
                   <td>{f.fecha}</td>
-                  <td>{f.cliente}</td>
+                  <td>{f.clienteNombre}</td>
                   <td className="r" style={{ fontWeight: 600 }}>
                     {fmt(f.totalGeneral)}
                   </td>
