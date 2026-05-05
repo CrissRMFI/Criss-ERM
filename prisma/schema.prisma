@@ -20,16 +20,18 @@ model Factura {
   id             String         @id @default(cuid())
   numero         Int            @unique
   fecha          String
-  cliente        String
+  clienteId      String?
+  cliente        Cliente?       @relation(fields: [clienteId], references: [id], onDelete: SetNull)
+  clienteNombre  String
   subtotal       Float
   saldoAnterior  Float          @default(0)
   totalGeneral   Float
   totalPagado    Float
   saldoPendiente Float
-  cajaDeuda      Int         @default(0)
-  cajaDejo       Int         @default(0)
-  cajaRetiro     Int         @default(0)
-  cajaNuevoSaldo Int          @default(0)
+  cajaDeuda      Int            @default(0)
+  cajaDejo       Int            @default(0)
+  cajaRetiro     Int            @default(0)
+  cajaNuevoSaldo Int            @default(0)
   observaciones  String         @default("")
   lineas         LineaFactura[]
   pagos          PagoFactura[]
@@ -58,4 +60,16 @@ model PagoFactura {
 model Config {
   id    String @id @default("singleton")
   ultimoNumeroFactura Int @default(0)
+}
+
+model Cliente {
+  id        String    @id @default(cuid())
+  nombre    String
+  telefono  String?
+  direccion String?
+  notas     String?
+  activo    Boolean   @default(true)
+  facturas  Factura[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
