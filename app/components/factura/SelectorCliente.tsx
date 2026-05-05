@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { Cliente } from "../../types";
 
 interface Props {
   query: string;
   results: Cliente[];
   onQueryChange: (q: string) => void;
+  onFocus: () => void;
   onSelect: (c: Cliente) => void;
 }
 
@@ -13,27 +15,43 @@ export default function SelectorCliente({
   query,
   results,
   onQueryChange,
+  onFocus,
   onSelect,
 }: Props) {
-  const ddOpen = query.length > 0 && results.length > 0;
+  const [open, setOpen] = useState(false);
 
   return (
     <div className="prod-wrap">
       <input
         className="field-input"
         type="text"
-        placeholder="Buscar cliente…"
+        placeholder="Seleccioná o buscá un cliente…"
         value={query}
-        onChange={(e) => onQueryChange(e.target.value)}
+        onChange={(e) => {
+          onQueryChange(e.target.value);
+          setOpen(true);
+        }}
+        onFocus={() => {
+          onFocus();
+          setOpen(true);
+        }}
+        onBlur={() => setTimeout(() => setOpen(false), 160)}
       />
-      {ddOpen && (
+      {open && results.length > 0 && (
         <div className="dd open" style={{ zIndex: 600 }}>
           {results.map((c) => (
-            <div key={c.id} className="dd-row" onMouseDown={() => onSelect(c)}>
-              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <span style={{ fontWeight: 600 }}>{c.nombre}</span>
+            <div
+              key={c.id}
+              className="dd-row"
+              onMouseDown={() => {
+                onSelect(c);
+                setOpen(false);
+              }}
+            >
+              <div className="flex flex-col gap-0.5">
+                <span className="font-semibold">{c.nombre}</span>
                 {c.telefono && (
-                  <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
+                  <span className="text-xs text-[var(--muted)]">
                     {c.telefono}
                   </span>
                 )}

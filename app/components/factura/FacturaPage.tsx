@@ -113,6 +113,7 @@ export default function FacturaPage() {
               results={factura.clienteResults}
               onQueryChange={factura.setClienteQuery}
               onSelect={factura.seleccionarCliente}
+              onFocus={() => factura.setClienteQuery("")}
             />
             {factura.clienteSeleccionado && (
               <div className="mt-2 px-3 py-2 bg-[var(--cream)] rounded-lg text-sm text-[var(--muted)] flex flex-wrap gap-4">

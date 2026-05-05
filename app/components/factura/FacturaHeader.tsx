@@ -18,17 +18,18 @@ export default function FacturaHeader({
         <div className="brand-sub">Comprobante de Venta</div>
         <div className="badge-factura">Original</div>
       </div>
-      <div className="meta-grid">
-        <div className="meta-item">
+      <div className="flex flex-col sm:flex-row gap-3 items-end">
+        <div className="flex flex-col items-end gap-1">
           <span className="meta-label">N° Factura</span>
           <input
             type="text"
             className="meta-input nro-input"
             value={nro}
             onChange={(e) => onNroChange(e.target.value)}
+            readOnly
           />
         </div>
-        <div className="meta-item">
+        <div className="flex flex-col items-end gap-1">
           <span className="meta-label">Fecha</span>
           <input
             type="date"

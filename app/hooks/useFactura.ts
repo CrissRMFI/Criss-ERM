@@ -80,20 +80,18 @@ export function useFactura() {
   }, []);
 
   // Buscar clientes
-  useEffect(() => {
-    const t = setTimeout(async () => {
-      if (!clienteQuery.trim()) {
-        setClienteResults([]);
-        return;
-      }
-      try {
-        setClienteResults(await clientesService.getAll(clienteQuery, true));
-      } catch {
-        setClienteResults([]);
-      }
-    }, 200);
-    return () => clearTimeout(t);
-  }, [clienteQuery]);
+ useEffect(() => {
+   const t = setTimeout(async () => {
+     try {
+       setClienteResults(
+         await clientesService.getAll(clienteQuery.trim(), true),
+       );
+     } catch {
+       setClienteResults([]);
+     }
+   }, 150);
+   return () => clearTimeout(t);
+ }, [clienteQuery]);
 
   // Seleccionar cliente y autocompletar deuda
   const seleccionarCliente = useCallback(async (c: Cliente) => {
