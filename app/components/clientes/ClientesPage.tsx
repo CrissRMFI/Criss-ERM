@@ -7,8 +7,10 @@ import ClienteModal from "./ClienteModal";
 import ClienteRow from "./ClienteRow";
 import HistorialCliente from "./HistorialCliente";
 import Toast from "../../ui/Toast";
+import { useRouter } from "next/navigation";
 
 export default function ClientesPage() {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [mostrarInactivos, setMostrarInactivos] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -101,7 +103,7 @@ export default function ClientesPage() {
                 <ClienteRow
                   key={c.id}
                   cliente={c}
-                  onHistorial={setHistorialCliente}
+                  onHistorial={(c) => router.push(`/clientes/${c.id}`)}
                   onEditar={(c) => {
                     setEditando(c);
                     setModalOpen(true);

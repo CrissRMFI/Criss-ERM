@@ -37,3 +37,19 @@ export async function PATCH(
   });
   return NextResponse.json(cliente);
 }
+
+export async function GET(
+  _req: Request,
+  { params }: { params: { id: string } },
+) {
+  try {
+    const cliente = await prisma.cliente.findUnique({
+      where: { id: params.id },
+    });
+    if (!cliente)
+      return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+    return NextResponse.json(cliente);
+  } catch {
+    return NextResponse.json({ error: "Error" }, { status: 500 });
+  }
+}

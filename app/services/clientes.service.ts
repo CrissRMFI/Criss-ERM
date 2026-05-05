@@ -1,3 +1,5 @@
+import { Cliente } from "../types";
+
 const BASE = "/api/clientes";
 
 export const clientesService = {
@@ -58,6 +60,12 @@ export const clientesService = {
   ): Promise<{ deudaMonetaria: number; deudaCajas: number }> => {
     const res = await fetch(`${BASE}/${id}/deuda`);
     if (!res.ok) throw new Error("Error al obtener deuda");
+    return res.json();
+  },
+
+  getById: async (id: string): Promise<Cliente> => {
+    const res = await fetch(`${BASE}/${id}`);
+    if (!res.ok) throw new Error("Cliente no encontrado");
     return res.json();
   },
 };
