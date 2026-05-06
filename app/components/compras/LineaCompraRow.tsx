@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { Producto } from "../../types";
 
 interface LineaCompra {
@@ -33,28 +34,61 @@ export default function LineaCompraRow({
   onChange,
   onDelete,
 }: Props) {
-  const ddOpen = results.length > 0;
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [ddPos, setDdPos] = useState({ top: 0, left: 0, width: 0 });
+  const [open, setOpen] = useState(false);
+
+  const handleFocus = () => {
+    if (inputRef.current) {
+      const rect = inputRef.current.getBoundingClientRect();
+      setDdPos({
+        top: rect.bottom + window.scrollY + 2,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+      });
+    }
+    onQueryChange(linea.id, "");
+    setOpen(true);
+  };
+
+  const handleBlur = () => {
+    setTimeout(() => setOpen(false), 160);
+  };
 
   return (
     <tr>
       <td>
         <div className="prod-wrap">
           <input
+            ref={inputRef}
             className="td-in pname"
             type="text"
             placeholder="Buscar producto…"
             value={query}
-            onChange={(e) => onQueryChange(linea.id, e.target.value)}
-            onFocus={() => onQueryChange(linea.id, query)}
-            onBlur={() => setTimeout(() => onQueryChange(linea.id, query), 160)}
+            onChange={(e) => {
+              onQueryChange(linea.id, e.target.value);
+              setOpen(true);
+            }}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
           />
-          {ddOpen && (
-            <div className="dd open">
+          {open && results.length > 0 && (
+            <div
+              className="dd-fixed"
+              style={{
+                top: ddPos.top,
+                left: ddPos.left,
+                width: ddPos.width,
+              }}
+            >
               {results.map((p) => (
                 <div
                   key={p.id}
                   className="dd-row"
-                  onMouseDown={() => onSelect(linea.id, p)}
+                  onMouseDown={() => {
+                    onSelect(linea.id, p);
+                    setOpen(false);
+                  }}
                 >
                   <span>{p.nombre}</span>
                   <span className="dd-price">{fmt(p.precio)}</span>

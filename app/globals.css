@@ -873,3 +873,15 @@ textarea.field-input {
   white-space: normal;
   word-break: break-word;
 }
+
+.dd-fixed {
+  position: fixed;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 28px var(--shadow);
+  z-index: 9999;
+  max-height: 185px;
+  overflow-y: auto;
+  min-width: 280px;
+}
