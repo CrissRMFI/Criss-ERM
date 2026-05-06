@@ -33,4 +33,10 @@ export const trasladosService = {
     }
     return res.json();
   },
+
+  getById: async (id: string) => {
+    const res = await fetch(`${BASE}/${id}`);
+    if (!res.ok) throw new Error("Traslado no encontrado");
+    return res.json();
+  },
 };

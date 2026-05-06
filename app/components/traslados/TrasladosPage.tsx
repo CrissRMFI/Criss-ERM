@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useTraslados } from "../../hooks/useTraslados";
+import { useRouter } from "next/navigation";
 
 function fmt(n: number) {
   return "$ " + Math.round(n).toLocaleString("es-AR");
@@ -9,6 +10,7 @@ function fmt(n: number) {
 
 export default function TrasladosPage() {
   const { traslados, loading, error } = useTraslados();
+  const router = useRouter();
 
   if (error)
     return <div className="empty-state">Error al cargar traslados.</div>;
@@ -40,7 +42,11 @@ export default function TrasladosPage() {
             </thead>
             <tbody>
               {traslados.map((t) => (
-                <tr key={t.id}>
+                <tr
+                  key={t.id}
+                  className="cursor-pointer hover:bg-[var(--paper)]"
+                  onClick={() => router.push(`/traslados/${t.id}`)}
+                >
                   <td className="font-bold text-[var(--gold)]">
                     MOV-{String(t.numeroMovimiento).padStart(3, "0")}
                   </td>
