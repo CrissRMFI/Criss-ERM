@@ -18,6 +18,5 @@ export function useAlmacenes() {
       .catch(() => setAlmacenes([]))
       .finally(() => setLoading(false));
   }, []);
-
   return { almacenes, loading };
 }
