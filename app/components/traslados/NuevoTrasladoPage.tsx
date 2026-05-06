@@ -9,6 +9,7 @@ import { trasladosService } from "../../services/traslados.service";
 import { useRouter } from "next/navigation";
 import Toast from "../../ui/Toast";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 function fmt(n: number) {
   return "$ " + Math.round(n).toLocaleString("es-AR");
@@ -22,12 +23,20 @@ export default function NuevoTrasladoPage() {
 
   const t = useNuevoTraslado(almacenes);
   const { stock, loading: loadingStock } = useStock(t.origenId);
+  const searchParams = useSearchParams();
+  const desdeId = searchParams.get("desde");
 
   useEffect(() => {
     if (!loadingStock && t.origenId) {
       t.cargarStock(stock);
     }
   }, [stock, loadingStock, t.origenId]);
+
+  useEffect(() => {
+    if (desdeId && almacenes.length > 0 && !t.origenId) {
+      t.setOrigenId(desdeId);
+    }
+  }, [desdeId, almacenes]);
 
   const handleGuardar = async () => {
     if (!t.validar()) {

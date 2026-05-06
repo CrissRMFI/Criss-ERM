@@ -28,12 +28,22 @@ export async function GET(
       };
     }
     acc[key].cantidadTotal += lote.cantidad;
-    acc[key].lotes.push({
-      id: lote.id,
-      cantidad: lote.cantidad,
-      precioCosto: lote.precioCosto,
-      createdAt: lote.createdAt,
-    });
+
+    // Consolidar lotes con el mismo precio costo
+    const loteExistente = acc[key].lotes.find(
+      (l: any) => l.precioCosto === lote.precioCosto,
+    );
+    if (loteExistente) {
+      loteExistente.cantidad += lote.cantidad;
+    } else {
+      acc[key].lotes.push({
+        id: lote.id,
+        cantidad: lote.cantidad,
+        precioCosto: lote.precioCosto,
+        createdAt: lote.createdAt,
+      });
+    }
+
     return acc;
   }, {});
 

@@ -35,6 +35,24 @@ export default function AlmacenPage({ almacenId }: Props) {
           </Link>
           <h1 className="page-title">{almacen?.nombre ?? "Almacén"}</h1>
         </div>
+        <Link
+          href={`/traslados/nuevo?desde=${almacenId}`}
+          className="btn btn-primary"
+        >
+          + Trasladar desde aquí
+        </Link>
+      </div>
+
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
+        <div>
+          <Link
+            href="/almacenes"
+            className="text-sm text-[var(--muted)] hover:text-[var(--ink)] transition-colors mb-1 block"
+          >
+            ← Almacenes
+          </Link>
+          <h1 className="page-title">{almacen?.nombre ?? "Almacén"}</h1>
+        </div>
         <div className="text-sm text-[var(--muted)]">
           {loading
             ? ""

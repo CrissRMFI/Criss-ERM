@@ -29,33 +29,63 @@ export default function StockTable({ stock, loading, search }: Props) {
         <tr>
           <th>Producto</th>
           <th className="r">Cantidad</th>
-          <th className="r hidden sm:table-cell">Precio venta</th>
-          <th className="r hidden md:table-cell">Lotes</th>
+          <th className="r hidden sm:table-cell">P. Costo</th>
         </tr>
       </thead>
       <tbody>
-        {stock.map((p) => (
-          <tr key={p.productoId}>
-            <td className="font-medium">{p.nombre}</td>
-            <td className="r">
-              <span
-                className={`font-bold ${p.cantidadTotal <= 5 ? "text-[var(--rust)]" : "text-[var(--ink)]"}`}
+        {stock.map((p) => {
+          const tieneVariosLotes = p.lotes.length > 1;
+
+          return (
+            <>
+              {/* Fila principal */}
+              <tr
+                key={p.productoId}
+                className={tieneVariosLotes ? "border-b-0" : ""}
               >
-                {p.cantidadTotal}
-              </span>
-            </td>
-            <td className="r hidden sm:table-cell">{fmt(p.precioVenta)}</td>
-            <td className="r hidden md:table-cell">
-              <div className="flex flex-col items-end gap-0.5">
-                {p.lotes.map((l) => (
-                  <span key={l.id} className="text-xs text-[var(--muted)]">
-                    {l.cantidad} u. @ {fmt(l.precioCosto)} costo
+                <td className={`font-medium ${tieneVariosLotes ? "pb-0" : ""}`}>
+                  {p.nombre}
+                </td>
+                <td className={`r ${tieneVariosLotes ? "pb-0" : ""}`}>
+                  <span
+                    className={`font-bold ${p.cantidadTotal <= 5 ? "text-[var(--rust)]" : "text-[var(--ink)]"}`}
+                  >
+                    {p.cantidadTotal}
                   </span>
+                </td>
+                <td
+                  className={`r hidden sm:table-cell ${tieneVariosLotes ? "pb-0" : ""}`}
+                >
+                  {/* Si hay un solo lote mostrá el costo acá */}
+                  {!tieneVariosLotes && (
+                    <span className="font-semibold">
+                      {fmt(p.lotes[0]?.precioCosto ?? 0)}
+                    </span>
+                  )}
+                </td>
+              </tr>
+
+              {/* Filas de lotes solo si hay más de uno */}
+              {tieneVariosLotes &&
+                p.lotes.map((l, i) => (
+                  <tr
+                    key={l.id}
+                    className={i === p.lotes.length - 1 ? "" : "border-b-0"}
+                  >
+                    <td className="pt-0 pl-6 text-xs text-[var(--muted)]">
+                      Lote {i + 1}
+                    </td>
+                    <td className="r pt-0 text-sm text-[var(--muted)]">
+                      {l.cantidad} u.
+                    </td>
+                    <td className="r pt-0 hidden sm:table-cell text-sm font-semibold">
+                      {fmt(l.precioCosto)}
+                    </td>
+                  </tr>
                 ))}
-              </div>
-            </td>
-          </tr>
-        ))}
+            </>
+          );
+        })}
       </tbody>
     </table>
   );
