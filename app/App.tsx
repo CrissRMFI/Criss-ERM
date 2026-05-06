@@ -16,6 +16,7 @@ export default function Nav() {
     { href: "/almacenes/movil", label: "Móvil" },
     { href: "/productos", label: "Productos" },
     { href: "/historial", label: "Historial" },
+    { href: "/traslados", label: "Traslados" },
   ];
 
   return (
