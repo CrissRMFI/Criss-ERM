@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
-import { StockProducto } from "./useStock";
 import { Almacen } from "./useAlmacenes";
+import { StockProducto } from "./useStock";
 
 interface LineaTraslado {
   loteId: string;
@@ -9,7 +9,7 @@ interface LineaTraslado {
   precioCosto: number;
   cantidadDisponible: number;
   cantidad: number;
-  esNegativo: boolean; // para externos
+  esNegativo: boolean;
 }
 
 function today() {
@@ -26,52 +26,46 @@ export function useNuevoTraslado(almacenes: Almacen[]) {
   const [fecha, setFecha] = useState(today());
   const [observaciones, setObservaciones] = useState("");
   const [lineas, setLineas] = useState<LineaTraslado[]>([]);
+  const [stockDisponible, setStockDisponible] = useState<StockProducto[]>([]);
 
   const origen = almacenes.find((a) => a.id === origenId);
   const destino = almacenes.find((a) => a.id === destinoId);
 
-  const cargarStock = useCallback(
-    (stock: StockProducto[]) => {
-      const nuevasLineas: LineaTraslado[] = [];
+  // Guardar el stock disponible para búsqueda
+  const cargarStock = useCallback((stock: StockProducto[]) => {
+    setStockDisponible(stock);
+    setLineas([]);
+  }, []);
 
-      if (origen?.tipo === "EXTERNO") {
-        // Para externos mostramos el stock disponible
-        // pero permitimos ingresar cualquier cantidad
-        stock.forEach((p) => {
-          p.lotes.forEach((l) => {
-            nuevasLineas.push({
-              loteId: l.id,
-              productoId: p.productoId,
-              nombre: p.nombre,
-              precioCosto: l.precioCosto,
-              cantidadDisponible: l.cantidad,
-              cantidad: 0,
-              esNegativo: false,
-            });
-          });
-        });
-      } else {
-        stock.forEach((p) => {
-          p.lotes.forEach((l) => {
-            if (l.cantidad > 0) {
-              nuevasLineas.push({
-                loteId: l.id,
-                productoId: p.productoId,
-                nombre: p.nombre,
-                precioCosto: l.precioCosto,
-                cantidadDisponible: l.cantidad,
-                cantidad: 0,
-                esNegativo: false,
-              });
-            }
-          });
-        });
-      }
+  // Agregar producto al traslado desde búsqueda
+  const agregarProducto = useCallback(
+    (productoId: string) => {
+      const producto = stockDisponible.find((p) => p.productoId === productoId);
+      if (!producto) return;
 
-      setLineas(nuevasLineas);
+      // Verificar que no esté ya agregado
+      const yaAgregado = lineas.some((l) => l.productoId === productoId);
+      if (yaAgregado) return;
+
+      // Agregar una línea por cada lote del producto
+      const nuevasLineas: LineaTraslado[] = producto.lotes.map((l) => ({
+        loteId: l.id,
+        productoId: producto.productoId,
+        nombre: producto.nombre,
+        precioCosto: l.precioCosto,
+        cantidadDisponible: l.cantidad,
+        cantidad: 0,
+        esNegativo: false,
+      }));
+
+      setLineas((prev) => [...prev, ...nuevasLineas]);
     },
-    [origen],
+    [stockDisponible, lineas],
   );
+
+  const eliminarLinea = (loteId: string) => {
+    setLineas((prev) => prev.filter((l) => l.loteId !== loteId));
+  };
 
   const actualizarCantidad = (loteId: string, cantidad: number) => {
     setLineas((ls) =>
@@ -79,11 +73,7 @@ export function useNuevoTraslado(almacenes: Almacen[]) {
         if (l.loteId !== loteId) return l;
         const esNegativo =
           origen?.tipo === "EXTERNO" ? cantidad > l.cantidadDisponible : false;
-        return {
-          ...l,
-          cantidad: Math.max(0, cantidad),
-          esNegativo,
-        };
+        return { ...l, cantidad: Math.max(0, cantidad), esNegativo };
       }),
     );
   };
@@ -121,6 +111,7 @@ export function useNuevoTraslado(almacenes: Almacen[]) {
     setFecha(today());
     setObservaciones("");
     setLineas([]);
+    setStockDisponible([]);
   };
 
   return {
@@ -136,7 +127,10 @@ export function useNuevoTraslado(almacenes: Almacen[]) {
     setObservaciones,
     lineas,
     lineasActivas,
+    stockDisponible,
     cargarStock,
+    agregarProducto,
+    eliminarLinea,
     actualizarCantidad,
     actualizarCosto,
     validar,

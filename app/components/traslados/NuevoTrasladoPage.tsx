@@ -6,10 +6,9 @@ import { useStock } from "../../hooks/useStock";
 import { useNuevoTraslado } from "../../hooks/useNuevoTraslado";
 import { useToast } from "../../hooks/useToast";
 import { trasladosService } from "../../services/traslados.service";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Toast from "../../ui/Toast";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 
 function fmt(n: number) {
   return "$ " + Math.round(n).toLocaleString("es-AR");
@@ -17,35 +16,41 @@ function fmt(n: number) {
 
 export default function NuevoTrasladoPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const desdeId = searchParams.get("desde");
   const { almacenes } = useAlmacenes();
   const { toast, showToast } = useToast();
   const [saving, setSaving] = useState(false);
+  const [busqueda, setBusqueda] = useState("");
 
   const t = useNuevoTraslado(almacenes);
   const { stock, loading: loadingStock } = useStock(t.origenId);
-  const searchParams = useSearchParams();
-  const desdeId = searchParams.get("desde");
 
-  useEffect(() => {
-    if (!loadingStock && t.origenId) {
-      t.cargarStock(stock);
-    }
-  }, [stock, loadingStock, t.origenId]);
-
+  // Preseleccionar origen si viene de un almacén
   useEffect(() => {
     if (desdeId && almacenes.length > 0 && !t.origenId) {
       t.setOrigenId(desdeId);
     }
   }, [desdeId, almacenes]);
 
+  // Cargar stock cuando cambia el origen
+  useEffect(() => {
+    if (!loadingStock && t.origenId) {
+      t.cargarStock(stock);
+    }
+  }, [stock, loadingStock, t.origenId]);
+
+  // Filtrar productos del stock para el buscador
+  const productosFiltrados = t.stockDisponible.filter(
+    (p) =>
+      p.nombre.toLowerCase().includes(busqueda.toLowerCase()) &&
+      !t.lineas.some((l) => l.productoId === p.productoId),
+  );
+
   const handleGuardar = async () => {
     if (!t.validar()) {
       if (!t.origenId || !t.destinoId) {
         showToast("Seleccioná origen y destino");
-        return;
-      }
-      if (t.origenId === t.destinoId) {
-        showToast("El origen y destino no pueden ser iguales");
         return;
       }
       showToast("Ingresá al menos una cantidad a trasladar");
@@ -138,89 +143,122 @@ export default function NuevoTrasladoPage() {
           </div>
         </div>
 
-        {/* STOCK */}
+        {/* BUSCADOR DE PRODUCTOS */}
         {t.origenId && (
           <div>
-            <div className="sec-title">
-              Stock en {t.origen?.nombre} — ingresá la cantidad a trasladar
-            </div>
-
+            <div className="sec-title">Agregar productos al traslado</div>
             {loadingStock ? (
               <div className="empty-state">Cargando stock…</div>
-            ) : t.lineas.length === 0 ? (
+            ) : t.stockDisponible.length === 0 ? (
               <div className="empty-state">Sin stock en este almacén.</div>
             ) : (
-              <div className="flex flex-col gap-2">
-                {t.lineas.map((l) => (
-                  <div
-                    key={l.loteId}
-                    className={`flex flex-wrap items-center gap-3 p-3 border rounded-lg transition-colors
-                      ${l.cantidad > 0 ? "border-[var(--gold)] bg-[var(--cream)]" : "border-[var(--border)] bg-[var(--paper)]"}
-                      ${l.esNegativo ? "border-[var(--rust)]" : ""}
-                    `}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm">{l.nombre}</div>
-                      <div className="text-xs text-[var(--muted)] mt-0.5">
-                        Disponible: {l.cantidadDisponible} u.
-                        {l.esNegativo && (
-                          <span className="text-[var(--rust)] ml-2 font-semibold">
-                            ⚠ Quedarás debiendo{" "}
-                            {l.cantidad - l.cantidadDisponible} u.
-                          </span>
-                        )}
+              <>
+                <input
+                  type="text"
+                  className="field-input mb-3"
+                  placeholder="Buscar producto para agregar…"
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                />
+                {busqueda && productosFiltrados.length > 0 && (
+                  <div className="card overflow-hidden mb-3">
+                    {productosFiltrados.slice(0, 8).map((p) => (
+                      <div
+                        key={p.productoId}
+                        className="flex justify-between items-center px-4 py-2 hover:bg-[var(--cream)] cursor-pointer border-b border-[var(--cream)] last:border-0"
+                        onClick={() => {
+                          t.agregarProducto(p.productoId);
+                          setBusqueda("");
+                        }}
+                      >
+                        <span className="text-sm font-medium">{p.nombre}</span>
+                        <span className="text-xs text-[var(--muted)]">
+                          {p.cantidadTotal} u. disponibles
+                        </span>
                       </div>
-                    </div>
+                    ))}
+                  </div>
+                )}
+                {busqueda && productosFiltrados.length === 0 && (
+                  <p className="text-sm text-[var(--muted)] mb-3">
+                    Sin resultados.
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+        )}
 
-                    {/* Costo editable */}
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs text-[var(--muted)]">
-                        Costo:
-                      </span>
-                      <input
-                        type="number"
-                        step="1"
-                        value={l.precioCosto || ""}
-                        onChange={(e) =>
-                          t.actualizarCosto(
-                            l.loteId,
-                            parseFloat(e.target.value) || 0,
-                          )
-                        }
-                        className="w-24 text-right border border-[var(--border)] rounded-lg px-2 py-1 text-xs outline-none focus:border-[var(--gold)]"
-                      />
+        {/* PRODUCTOS SELECCIONADOS */}
+        {t.lineas.length > 0 && (
+          <div>
+            <div className="sec-title">Productos a trasladar</div>
+            <div className="flex flex-col gap-2">
+              {t.lineas.map((l) => (
+                <div
+                  key={l.loteId}
+                  className={`flex flex-wrap items-center gap-3 p-3 border rounded-lg transition-colors
+                    ${l.cantidad > 0 ? "border-[var(--gold)] bg-[var(--cream)]" : "border-[var(--border)] bg-[var(--paper)]"}
+                    ${l.esNegativo ? "border-[var(--rust)]" : ""}
+                  `}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm">{l.nombre}</div>
+                    <div className="text-xs text-[var(--muted)] mt-0.5">
+                      Disponible: {l.cantidadDisponible} u.
+                      {l.esNegativo && (
+                        <span className="text-[var(--rust)] ml-2 font-semibold">
+                          ⚠ Quedarás debiendo{" "}
+                          {l.cantidad - l.cantidadDisponible} u.
+                        </span>
+                      )}
                     </div>
-
-                    {/* Cantidad */}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-[var(--muted)]">Costo:</span>
                     <input
                       type="number"
-                      min={0}
-                      value={l.cantidad || ""}
-                      placeholder="0"
+                      step="1"
+                      value={l.precioCosto || ""}
                       onChange={(e) =>
-                        t.actualizarCantidad(
+                        t.actualizarCosto(
                           l.loteId,
-                          parseInt(e.target.value) || 0,
+                          parseFloat(e.target.value) || 0,
                         )
                       }
-                      className={`w-20 text-right border rounded-lg px-2 py-1 text-sm font-bold outline-none
-                        ${
-                          l.esNegativo
-                            ? "border-[var(--rust)] focus:border-[var(--rust)]"
-                            : "border-[var(--border)] focus:border-[var(--gold)]"
-                        }`}
+                      className="w-24 text-right border border-[var(--border)] rounded-lg px-2 py-1 text-xs outline-none focus:border-[var(--gold)]"
                     />
                   </div>
-                ))}
-              </div>
-            )}
+                  <input
+                    type="number"
+                    min={0}
+                    value={l.cantidad || ""}
+                    placeholder="0"
+                    onChange={(e) =>
+                      t.actualizarCantidad(
+                        l.loteId,
+                        parseInt(e.target.value) || 0,
+                      )
+                    }
+                    className={`w-20 text-right border rounded-lg px-2 py-1 text-sm font-bold outline-none
+                      ${l.esNegativo ? "border-[var(--rust)]" : "border-[var(--border)] focus:border-[var(--gold)]"}`}
+                  />
+                  <button
+                    className="del-row"
+                    onClick={() => t.eliminarLinea(l.loteId)}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
         {/* RESUMEN */}
         {t.lineasActivas.length > 0 && (
           <div>
-            <div className="sec-title">Resumen del traslado</div>
+            <div className="sec-title">Resumen</div>
             <div className="totals-box">
               {t.lineasActivas.map((l) => (
                 <div key={l.loteId} className="t-row">
@@ -233,6 +271,17 @@ export default function NuevoTrasladoPage() {
                   </div>
                 </div>
               ))}
+              <div className="t-row grand">
+                <span className="t-lbl">Total en costo</span>
+                <span className="t-val">
+                  {fmt(
+                    t.lineasActivas.reduce(
+                      (acc, l) => acc + l.cantidad * l.precioCosto,
+                      0,
+                    ),
+                  )}
+                </span>
+              </div>
             </div>
           </div>
         )}
