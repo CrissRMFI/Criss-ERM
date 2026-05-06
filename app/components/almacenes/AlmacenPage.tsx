@@ -2,16 +2,19 @@
 
 import { useState } from "react";
 import { useStock } from "../../hooks/useStock";
+import { useAlmacenes } from "../../hooks/useAlmacenes";
 import StockTable from "./StockTable";
+import Link from "next/link";
 
 interface Props {
   almacenId: string;
-  titulo: string;
 }
 
-export default function AlmacenPage({ almacenId, titulo }: Props) {
+export default function AlmacenPage({ almacenId }: Props) {
   const [search, setSearch] = useState("");
   const { stock, loading, error } = useStock(almacenId);
+  const { almacenes } = useAlmacenes();
+  const almacen = almacenes.find((a) => a.id === almacenId);
 
   const filtrado = stock.filter((p) =>
     p.nombre.toLowerCase().includes(search.toLowerCase()),
@@ -22,8 +25,16 @@ export default function AlmacenPage({ almacenId, titulo }: Props) {
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-        <h1 className="page-title">{titulo}</h1>
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
+        <div>
+          <Link
+            href="/almacenes"
+            className="text-sm text-[var(--muted)] hover:text-[var(--ink)] transition-colors mb-1 block"
+          >
+            ← Almacenes
+          </Link>
+          <h1 className="page-title">{almacen?.nombre ?? "Almacén"}</h1>
+        </div>
         <div className="text-sm text-[var(--muted)]">
           {loading
             ? ""
