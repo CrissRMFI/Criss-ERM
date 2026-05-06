@@ -1,9 +1,6 @@
 import { useState, useCallback } from "react";
 import { StockProducto } from "./useStock";
-import { trasladosService } from "../services/traslados.service";
-
-const ALMACEN_CENTRAL = "almacen-central";
-const ALMACEN_MOVIL = "almacen-movil";
+import { Almacen } from "./useAlmacenes";
 
 interface LineaTraslado {
   loteId: string;
@@ -12,6 +9,7 @@ interface LineaTraslado {
   precioCosto: number;
   cantidadDisponible: number;
   cantidad: number;
+  esNegativo: boolean; // para externos
 }
 
 function today() {
@@ -22,53 +20,86 @@ function today() {
   return `${y}-${m}-${d}`;
 }
 
-export function useNuevoTraslado() {
-  const [origenTipo, setOrigenTipo] = useState<"CENTRAL" | "MOVIL">("CENTRAL");
+export function useNuevoTraslado(almacenes: Almacen[]) {
+  const [origenId, setOrigenId] = useState("");
+  const [destinoId, setDestinoId] = useState("");
   const [fecha, setFecha] = useState(today());
   const [observaciones, setObservaciones] = useState("");
   const [lineas, setLineas] = useState<LineaTraslado[]>([]);
 
-  const origenId = origenTipo === "CENTRAL" ? ALMACEN_CENTRAL : ALMACEN_MOVIL;
-  const destinoId = origenTipo === "CENTRAL" ? ALMACEN_MOVIL : ALMACEN_CENTRAL;
-  const destinoNombre =
-    origenTipo === "CENTRAL" ? "Depósito Móvil" : "Casa Central";
+  const origen = almacenes.find((a) => a.id === origenId);
+  const destino = almacenes.find((a) => a.id === destinoId);
 
-  // Cargar productos del origen al seleccionarlo
-  const cargarStock = useCallback((stock: StockProducto[]) => {
-    const nuevasLineas: LineaTraslado[] = [];
-    stock.forEach((p) => {
-      p.lotes.forEach((l) => {
-        if (l.cantidad > 0) {
-          nuevasLineas.push({
-            loteId: l.id,
-            productoId: p.productoId,
-            nombre: p.nombre,
-            precioCosto: l.precioCosto,
-            cantidadDisponible: l.cantidad,
-            cantidad: 0,
+  const cargarStock = useCallback(
+    (stock: StockProducto[]) => {
+      const nuevasLineas: LineaTraslado[] = [];
+
+      if (origen?.tipo === "EXTERNO") {
+        // Para externos mostramos el stock disponible
+        // pero permitimos ingresar cualquier cantidad
+        stock.forEach((p) => {
+          p.lotes.forEach((l) => {
+            nuevasLineas.push({
+              loteId: l.id,
+              productoId: p.productoId,
+              nombre: p.nombre,
+              precioCosto: l.precioCosto,
+              cantidadDisponible: l.cantidad,
+              cantidad: 0,
+              esNegativo: false,
+            });
           });
-        }
-      });
-    });
-    setLineas(nuevasLineas);
-  }, []);
+        });
+      } else {
+        stock.forEach((p) => {
+          p.lotes.forEach((l) => {
+            if (l.cantidad > 0) {
+              nuevasLineas.push({
+                loteId: l.id,
+                productoId: p.productoId,
+                nombre: p.nombre,
+                precioCosto: l.precioCosto,
+                cantidadDisponible: l.cantidad,
+                cantidad: 0,
+                esNegativo: false,
+              });
+            }
+          });
+        });
+      }
+
+      setLineas(nuevasLineas);
+    },
+    [origen],
+  );
 
   const actualizarCantidad = (loteId: string, cantidad: number) => {
     setLineas((ls) =>
-      ls.map((l) =>
-        l.loteId === loteId
-          ? {
-              ...l,
-              cantidad: Math.min(l.cantidadDisponible, Math.max(0, cantidad)),
-            }
-          : l,
-      ),
+      ls.map((l) => {
+        if (l.loteId !== loteId) return l;
+        const esNegativo =
+          origen?.tipo === "EXTERNO" ? cantidad > l.cantidadDisponible : false;
+        return {
+          ...l,
+          cantidad: Math.max(0, cantidad),
+          esNegativo,
+        };
+      }),
+    );
+  };
+
+  const actualizarCosto = (loteId: string, precioCosto: number) => {
+    setLineas((ls) =>
+      ls.map((l) => (l.loteId === loteId ? { ...l, precioCosto } : l)),
     );
   };
 
   const lineasActivas = lineas.filter((l) => l.cantidad > 0);
-
-  const validar = () => lineasActivas.length > 0;
+  const validar = () =>
+    !!origenId &&
+    !!destinoId &&
+    origenId !== destinoId &&
+    lineasActivas.length > 0;
 
   const buildData = () => ({
     origenId,
@@ -78,23 +109,27 @@ export function useNuevoTraslado() {
     lineas: lineasActivas.map((l) => ({
       loteId: l.loteId,
       productoId: l.productoId,
+      nombre: l.nombre,
       cantidad: l.cantidad,
       precioCosto: l.precioCosto,
     })),
   });
 
   const reset = () => {
+    setOrigenId("");
+    setDestinoId("");
     setFecha(today());
     setObservaciones("");
     setLineas([]);
   };
 
   return {
-    origenTipo,
-    setOrigenTipo,
     origenId,
+    setOrigenId,
     destinoId,
-    destinoNombre,
+    setDestinoId,
+    origen,
+    destino,
     fecha,
     setFecha,
     observaciones,
@@ -103,6 +138,7 @@ export function useNuevoTraslado() {
     lineasActivas,
     cargarStock,
     actualizarCantidad,
+    actualizarCosto,
     validar,
     buildData,
     reset,

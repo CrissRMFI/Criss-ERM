@@ -1,17 +1,24 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const almacenId = searchParams.get("almacenId");
+
   const traslados = await prisma.traslado.findMany({
+    where: almacenId
+      ? {
+          OR: [{ origenId: almacenId }, { destinoId: almacenId }],
+        }
+      : undefined,
     include: {
       origen: true,
       destino: true,
-      lineas: {
-        include: { producto: true },
-      },
+      lineas: { include: { producto: true } },
     },
     orderBy: { createdAt: "desc" },
   });
+
   return NextResponse.json(traslados, {
     headers: { "Cache-Control": "no-store" },
   });
@@ -27,16 +34,29 @@ export async function POST(req: Request) {
     );
   }
 
-  // Transacción: crear traslado + ajustar stock
   const traslado = await prisma.$transaction(async (tx) => {
+    // Obtener almacén origen
+    const origen = await tx.almacen.findUnique({
+      where: { id: body.origenId },
+    });
+    if (!origen) throw new Error("Almacén origen no encontrado");
+
+    // Incrementar número de movimiento
+    const config = await tx.config.update({
+      where: { id: "singleton" },
+      data: { ultimoNumeroMovimiento: { increment: 1 } },
+    });
+
     for (const linea of body.lineas) {
-      // Verificar stock disponible en el lote
       const lote = await tx.stockLote.findUnique({
         where: { id: linea.loteId },
       });
 
-      if (!lote || lote.cantidad < linea.cantidad) {
-        throw new Error(`Stock insuficiente para el lote seleccionado`);
+      if (!lote) throw new Error("Lote no encontrado");
+
+      // Solo CENTRAL y MOVIL no pueden quedar en negativo
+      if (origen.tipo !== "EXTERNO" && lote.cantidad < linea.cantidad) {
+        throw new Error(`Stock insuficiente para "${linea.nombre}"`);
       }
 
       // Descontar del lote origen
@@ -45,7 +65,7 @@ export async function POST(req: Request) {
         data: { cantidad: { decrement: linea.cantidad } },
       });
 
-      // Agregar al destino como nuevo lote
+      // Agregar al destino
       await tx.stockLote.create({
         data: {
           almacenId: body.destinoId,
@@ -62,6 +82,7 @@ export async function POST(req: Request) {
         destinoId: body.destinoId,
         fecha: body.fecha,
         observaciones: body.observaciones ?? "",
+        numeroMovimiento: config.ultimoNumeroMovimiento,
         lineas: {
           create: body.lineas.map((l: any) => ({
             productoId: l.productoId,

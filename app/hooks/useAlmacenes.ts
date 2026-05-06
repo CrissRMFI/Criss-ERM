@@ -4,7 +4,7 @@ import { almacenesService } from "../services/almacenes.service";
 export interface Almacen {
   id: string;
   nombre: string;
-  tipo: "CENTRAL" | "MOVIL";
+  tipo: "CENTRAL" | "MOVIL" | "EXTERNO";
 }
 
 export function useAlmacenes() {

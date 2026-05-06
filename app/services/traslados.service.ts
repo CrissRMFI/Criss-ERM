@@ -1,8 +1,10 @@
 const BASE = "/api/traslados";
 
 export const trasladosService = {
-  getAll: async () => {
-    const res = await fetch(BASE);
+  getAll: async (almacenId?: string) => {
+    const params = new URLSearchParams();
+    if (almacenId) params.set("almacenId", almacenId);
+    const res = await fetch(`${BASE}?${params}`);
     if (!res.ok) throw new Error("Error al cargar traslados");
     return res.json();
   },
@@ -15,6 +17,7 @@ export const trasladosService = {
     lineas: {
       loteId: string;
       productoId: string;
+      nombre: string;
       cantidad: number;
       precioCosto: number;
     }[];

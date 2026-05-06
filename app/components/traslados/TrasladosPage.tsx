@@ -1,39 +1,25 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useToast } from "../../hooks/useToast";
-import { trasladosService } from "../../services/traslados.service";
-import NuevoTrasladoModal from "./NuevoTrasladoModal";
-import Toast from "../../ui/Toast";
+import Link from "next/link";
+import { useTraslados } from "../../hooks/useTraslados";
+
+function fmt(n: number) {
+  return "$ " + Math.round(n).toLocaleString("es-AR");
+}
 
 export default function TrasladosPage() {
-  const [traslados, setTraslados] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
-  const { toast, showToast } = useToast();
+  const { traslados, loading, error } = useTraslados();
 
-  const fetchTraslados = useCallback(async () => {
-    setLoading(true);
-    try {
-      setTraslados(await trasladosService.getAll());
-    } catch {
-      showToast("Error al cargar traslados");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchTraslados();
-  }, [fetchTraslados]);
+  if (error)
+    return <div className="empty-state">Error al cargar traslados.</div>;
 
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
         <h1 className="page-title">Traslados</h1>
-        <button className="btn btn-primary" onClick={() => setModalOpen(true)}>
+        <Link href="/traslados/nuevo" className="btn btn-primary">
           + Nuevo traslado
-        </button>
+        </Link>
       </div>
 
       <div className="card overflow-x-auto">
@@ -45,21 +31,25 @@ export default function TrasladosPage() {
           <table className="prod-table">
             <thead>
               <tr>
-                <th>Fecha</th>
+                <th>MOV</th>
+                <th className="hidden sm:table-cell">Fecha</th>
                 <th>Origen</th>
                 <th>Destino</th>
-                <th>Productos</th>
+                <th className="hidden md:table-cell">Productos</th>
               </tr>
             </thead>
             <tbody>
               {traslados.map((t) => (
                 <tr key={t.id}>
-                  <td>{t.fecha}</td>
+                  <td className="font-bold text-[var(--gold)]">
+                    MOV-{String(t.numeroMovimiento).padStart(3, "0")}
+                  </td>
+                  <td className="hidden sm:table-cell text-sm">{t.fecha}</td>
                   <td className="font-medium">{t.origen.nombre}</td>
                   <td className="font-medium">{t.destino.nombre}</td>
-                  <td>
+                  <td className="hidden md:table-cell">
                     <div className="flex flex-col gap-0.5">
-                      {t.lineas.map((l: any) => (
+                      {t.lineas.map((l) => (
                         <span key={l.id} className="text-sm">
                           {l.producto.nombre} —{" "}
                           <span className="text-[var(--muted)]">
@@ -75,15 +65,6 @@ export default function TrasladosPage() {
           </table>
         )}
       </div>
-
-      {modalOpen && (
-        <NuevoTrasladoModal
-          onClose={() => setModalOpen(false)}
-          onGuardado={fetchTraslados}
-        />
-      )}
-
-      <Toast msg={toast.msg} show={toast.show} />
     </>
   );
 }

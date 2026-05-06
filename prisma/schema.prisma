@@ -63,8 +63,9 @@ model PagoFactura {
 }
 
 model Config {
-  id                  String @id @default("singleton")
-  ultimoNumeroFactura Int    @default(0)
+  id                     String @id @default("singleton")
+  ultimoNumeroFactura    Int    @default(0)
+  ultimoNumeroMovimiento Int    @default(0)
 }
 
 model Cliente {
@@ -92,6 +93,7 @@ model Almacen {
 enum AlmacenTipo {
   CENTRAL
   MOVIL
+  EXTERNO
 }
 
 model Compra {
@@ -126,15 +128,16 @@ model StockLote {
 }
 
 model Traslado {
-  id            String          @id @default(cuid())
-  origen        Almacen         @relation("AlmacenOrigen", fields: [origenId], references: [id])
-  origenId      String
-  destino       Almacen         @relation("AlmacenDestino", fields: [destinoId], references: [id])
-  destinoId     String
-  fecha         String
-  observaciones String          @default("")
-  lineas        TrasladoLinea[]
-  createdAt     DateTime        @default(now())
+  id               String          @id @default(cuid())
+  numeroMovimiento Int             @unique
+  origen           Almacen         @relation("AlmacenOrigen", fields: [origenId], references: [id])
+  origenId         String
+  destino          Almacen         @relation("AlmacenDestino", fields: [destinoId], references: [id])
+  destinoId        String
+  fecha            String
+  observaciones    String          @default("")
+  lineas           TrasladoLinea[]
+  createdAt        DateTime        @default(now())
 }
 
 model TrasladoLinea {
