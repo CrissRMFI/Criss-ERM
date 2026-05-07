@@ -4,7 +4,10 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[var(--paper)] flex items-center justify-center px-4">
       <div className="w-full max-w-sm text-center flex flex-col items-center gap-8">
-        {/* Logo */}
+        <img
+          src="https://res.cloudinary.com/developmentcrissroldan/image/upload/v1720758262/maresa-web-provisoria/LogoMaresaBlack_mqbglc.svg"
+          alt="Logo"
+        />
         <div>
           <h1 className="font-serif text-5xl text-[var(--ink)] tracking-tight">
             <span className="text-[var(--gold)]">.</span>
