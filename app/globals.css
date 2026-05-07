@@ -871,9 +871,27 @@ textarea.field-input {
     justify-content: center;
   }
 
+  .btn-ghost-pay {
+    margin-top: 5px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
   .prod-table td.r {
     width: 100%;
     text-align: left;
+  }
+
+  .row-actions {
+    align-items: stretch;
+  }
+
+  .row-actions .btn {
+    width: 100%;
+    justify-content: center;
   }
 }
 
