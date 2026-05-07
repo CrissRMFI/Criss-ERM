@@ -1,46 +1,36 @@
-const BASE = "/api/proveedores";
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
-export const proveedoresService = {
-  getAll: async () => {
-    const res = await fetch(BASE);
-    if (!res.ok) throw new Error("Error al cargar proveedores");
-    return res.json();
-  },
+export async function PUT(
+  req: Request,
+  { params }: { params: { id: string } },
+) {
+  const body = await req.json();
+  if (!body.nombre?.trim()) {
+    return NextResponse.json(
+      { error: "El nombre es requerido" },
+      { status: 400 },
+    );
+  }
+  const proveedor = await prisma.proveedor.update({
+    where: { id: params.id },
+    data: {
+      nombre: body.nombre.trim(),
+      telefono: body.telefono?.trim() || null,
+      notas: body.notas?.trim() || null,
+    },
+  });
+  return NextResponse.json(proveedor);
+}
 
-  create: async (data: {
-    nombre: string;
-    telefono?: string;
-    notas?: string;
-  }) => {
-    const res = await fetch(BASE, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error("Error al crear proveedor");
-    return res.json();
-  },
-
-  update: async (
-    id: string,
-    data: { nombre: string; telefono?: string; notas?: string },
-  ) => {
-    const res = await fetch(`${BASE}/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error("Error al actualizar proveedor");
-    return res.json();
-  },
-
-  toggleActivo: async (id: string, activo: boolean) => {
-    const res = await fetch(`${BASE}/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ activo }),
-    });
-    if (!res.ok) throw new Error("Error al actualizar estado");
-    return res.json();
-  },
-};
+export async function PATCH(
+  req: Request,
+  { params }: { params: { id: string } },
+) {
+  const body = await req.json();
+  const proveedor = await prisma.proveedor.update({
+    where: { id: params.id },
+    data: { activo: body.activo },
+  });
+  return NextResponse.json(proveedor);
+}
