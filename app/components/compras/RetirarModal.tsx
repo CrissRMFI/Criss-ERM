@@ -65,7 +65,7 @@ export default function RetirarModal({ compra, onClose, onGuardado }: Props) {
             <div>
               <h3>Retirar mercadería</h3>
               <p className="text-sm text-[var(--muted)] mt-0.5">
-                {compra.proveedor || "Sin proveedor"} — {compra.fecha}
+                {compra.proveedor?.nombre || "Sin proveedor"} — {compra.fecha}
               </p>
             </div>
             <button className="btn btn-ghost btn-sm" onClick={onClose}>
