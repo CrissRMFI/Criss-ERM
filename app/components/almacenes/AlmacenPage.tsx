@@ -10,9 +10,13 @@ interface Props {
   almacenId: string;
 }
 
+function fmt(n: number) {
+  return "$ " + Math.round(n).toLocaleString("es-AR");
+}
+
 export default function AlmacenPage({ almacenId }: Props) {
   const [search, setSearch] = useState("");
-  const { stock, loading, error } = useStock(almacenId);
+  const { stock, totalValor, loading, error } = useStock(almacenId);
   const { almacenes } = useAlmacenes();
   const almacen = almacenes.find((a) => a.id === almacenId);
 
@@ -35,28 +39,23 @@ export default function AlmacenPage({ almacenId }: Props) {
           </Link>
           <h1 className="page-title">{almacen?.nombre ?? "Almacén"}</h1>
         </div>
-        <Link
-          href={`/traslados/nuevo?desde=${almacenId}`}
-          className="btn btn-primary"
-        >
-          + Trasladar desde aquí
-        </Link>
-      </div>
-
-      <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
-        <div>
+        <div className="flex flex-col items-end gap-2">
           <Link
-            href="/almacenes"
-            className="text-sm text-[var(--muted)] hover:text-[var(--ink)] transition-colors mb-1 block"
+            href={`/traslados/nuevo?desde=${almacenId}`}
+            className="btn btn-primary"
           >
-            ← Almacenes
+            + Trasladar desde aquí
           </Link>
-          <h1 className="page-title">{almacen?.nombre ?? "Almacén"}</h1>
-        </div>
-        <div className="text-sm text-[var(--muted)]">
-          {loading
-            ? ""
-            : `${stock.length} producto${stock.length !== 1 ? "s" : ""}`}
+          {!loading && (
+            <div className="text-sm text-[var(--muted)] mt-4">
+              {stock.length} producto{stock.length !== 1 ? "s" : ""}
+              {
+                <span className="font-bold text-[var(--ink)] text-4xl ml-5">
+                  Total: {fmt(totalValor)}
+                </span>
+              }
+            </div>
+          )}
         </div>
       </div>
 

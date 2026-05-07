@@ -18,12 +18,21 @@ export function useStock(almacenId: string) {
   const [stock, setStock] = useState<StockProducto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalValor, setTotalValor] = useState(0);
 
   const fetchStock = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      setStock(await almacenesService.getStock(almacenId));
+      const productos = await almacenesService.getStock(almacenId);
+      setStock(productos);
+      const total = productos.reduce(
+        (acc: number, p: StockProducto) =>
+          acc + p.lotes.reduce((a, l) => a + l.cantidad * l.precioCosto, 0),
+        0,
+      );
+
+      setTotalValor(total);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -35,5 +44,5 @@ export function useStock(almacenId: string) {
     fetchStock();
   }, [fetchStock]);
 
-  return { stock, loading, error, refetch: fetchStock };
+  return { stock, totalValor, loading, error, refetch: fetchStock };
 }
