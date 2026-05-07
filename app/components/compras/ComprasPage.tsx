@@ -19,7 +19,7 @@ const ESTADO_STYLE: Record<string, string> = {
 };
 
 export default function ComprasPage() {
-  const { compras, loading, error, retirar, pagar, cancelar, refetch } =
+  const { compras, loading, error, crear, retirar, pagar, cancelar, refetch } =
     useCompras();
   const { toast, showToast } = useToast();
   const [nuevaOpen, setNuevaOpen] = useState(false);
@@ -167,6 +167,7 @@ export default function ComprasPage() {
         <NuevaCompraModal
           onClose={() => setNuevaOpen(false)}
           onGuardado={refetch}
+          onCreate={crear}
         />
       )}
 
