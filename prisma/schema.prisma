@@ -8,6 +8,13 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum CompraEstado {
+  PENDIENTE
+  COMPLETADA
+  CANCELADA
+}
+
+
 model Producto {
   id        String          @id @default(cuid())
   nombre    String
@@ -96,13 +103,40 @@ enum AlmacenTipo {
   EXTERNO
 }
 
+model PagoCompra {
+  id        String   @id @default(cuid())
+  compra    Compra   @relation(fields: [compraId], references: [id])
+  compraId  String
+  monto     Float
+  fecha     String
+  tipo      String   @default("Efectivo")
+  notas     String   @default("")
+  createdAt DateTime @default(now())
+}
+
+
+model Proveedor {
+  id        String   @id @default(cuid())
+  nombre    String
+  telefono  String?
+  notas     String?
+  activo    Boolean  @default(true)
+  compras   Compra[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Compra {
   id            String        @id @default(cuid())
   fecha         String
-  proveedor     String        @default("")
   observaciones String        @default("")
   lineas        CompraLinea[]
   createdAt     DateTime      @default(now())
+  proveedorId   String?
+  proveedor     Proveedor? @relation(fields: [proveedorId], references: [id])
+  estado        CompraEstado @default(PENDIENTE)
+  canceladaAt   DateTime?
+  pagos         PagoCompra[]
 }
 
 model CompraLinea {

@@ -16,6 +16,7 @@ export default function Nav() {
     { href: "/almacenes", label: "Almacenes" },
     { href: "/productos", label: "Productos" },
     { href: "/historial", label: "Historial" },
+    { href: "/proveedores", label: "Proveedores" },
   ];
 
   return (
