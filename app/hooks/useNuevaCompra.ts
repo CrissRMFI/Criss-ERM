@@ -93,7 +93,7 @@ export function useNuevaCompra() {
 
   const buildData = () => ({
     fecha,
-    proveedor,
+    proveedorId: "", // se sobreescribe desde el modal
     observaciones,
     lineas: lineas
       .filter((l) => l.productoId)

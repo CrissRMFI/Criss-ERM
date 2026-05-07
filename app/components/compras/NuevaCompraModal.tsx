@@ -1,20 +1,36 @@
 "use client";
 
+import { useState } from "react";
 import { useNuevaCompra } from "../../hooks/useNuevaCompra";
+import { useProveedores } from "../../hooks/useProveedores";
 import { useToast } from "../../hooks/useToast";
-import { useCompras } from "../../hooks/useCompras";
 import LineaCompraRow from "./LineaCompraRow";
 import Toast from "../../ui/Toast";
 
 interface Props {
   onClose: () => void;
   onGuardado: () => void;
+  onCreate: (data: {
+    fecha: string;
+    proveedorId?: string;
+    observaciones: string;
+    lineas: {
+      productoId: string;
+      cantidadTotal: number;
+      precioCosto: number;
+    }[];
+  }) => Promise<void>;
 }
 
-export default function NuevaCompraModal({ onClose, onGuardado }: Props) {
+export default function NuevaCompraModal({
+  onClose,
+  onGuardado,
+  onCreate,
+}: Props) {
   const form = useNuevaCompra();
-  const { crear } = useCompras();
+  const { proveedores } = useProveedores();
   const { toast, showToast } = useToast();
+  const [proveedorId, setProveedorId] = useState("");
 
   const handleGuardar = async () => {
     if (!form.validar()) {
@@ -22,7 +38,10 @@ export default function NuevaCompraModal({ onClose, onGuardado }: Props) {
       return;
     }
     try {
-      await crear(form.buildData());
+      await onCreate({
+        ...form.buildData(),
+        proveedorId: proveedorId || undefined,
+      });
       showToast("Compra registrada");
       form.reset();
       setTimeout(() => {
@@ -49,7 +68,6 @@ export default function NuevaCompraModal({ onClose, onGuardado }: Props) {
           </div>
 
           <div className="flex flex-col gap-4">
-            {/* DATOS */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="modal-field">
                 <label>Fecha</label>
@@ -61,16 +79,21 @@ export default function NuevaCompraModal({ onClose, onGuardado }: Props) {
               </div>
               <div className="modal-field">
                 <label>Proveedor</label>
-                <input
-                  type="text"
-                  placeholder="Nombre del proveedor…"
-                  value={form.proveedor}
-                  onChange={(e) => form.setProveedor(e.target.value)}
-                />
+                <select
+                  className="field-input"
+                  value={proveedorId}
+                  onChange={(e) => setProveedorId(e.target.value)}
+                >
+                  <option value="">Sin proveedor</option>
+                  {proveedores.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.nombre}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
-            {/* PRODUCTOS */}
             <div>
               <div className="sec-title">Productos</div>
               <div className="overflow-x-auto">
@@ -105,7 +128,6 @@ export default function NuevaCompraModal({ onClose, onGuardado }: Props) {
               </button>
             </div>
 
-            {/* OBSERVACIONES */}
             <div className="modal-field">
               <label>Observaciones</label>
               <textarea
@@ -116,7 +138,6 @@ export default function NuevaCompraModal({ onClose, onGuardado }: Props) {
               />
             </div>
 
-            {/* BOTONES */}
             <div className="flex gap-2 justify-end">
               <button className="btn btn-ghost" onClick={onClose}>
                 Cancelar
@@ -128,7 +149,6 @@ export default function NuevaCompraModal({ onClose, onGuardado }: Props) {
           </div>
         </div>
       </div>
-
       <Toast msg={toast.msg} show={toast.show} />
     </>
   );

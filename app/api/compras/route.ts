@@ -4,9 +4,9 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   const compras = await prisma.compra.findMany({
     include: {
-      lineas: {
-        include: { producto: true },
-      },
+      proveedor: true,
+      lineas: { include: { producto: true } },
+      pagos: true,
     },
     orderBy: { createdAt: "desc" },
   });
@@ -27,9 +27,10 @@ export async function POST(req: Request) {
 
   const compra = await prisma.compra.create({
     data: {
+      proveedorId: body.proveedorId ?? null,
       fecha: body.fecha,
-      proveedor: body.proveedor ?? "",
       observaciones: body.observaciones ?? "",
+      estado: "PENDIENTE",
       lineas: {
         create: body.lineas.map((l: any) => ({
           productoId: l.productoId,
@@ -40,7 +41,9 @@ export async function POST(req: Request) {
       },
     },
     include: {
+      proveedor: true,
       lineas: { include: { producto: true } },
+      pagos: true,
     },
   });
 

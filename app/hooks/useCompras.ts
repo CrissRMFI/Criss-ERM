@@ -10,12 +10,23 @@ export interface CompraLinea {
   precioCosto: number;
 }
 
+export interface PagoCompra {
+  id: string;
+  monto: number;
+  fecha: string;
+  tipo: string;
+  notas: string;
+}
+
 export interface Compra {
   id: string;
   fecha: string;
-  proveedor: string;
+  proveedor?: { id: string; nombre: string } | null;
   observaciones: string;
+  estado: "PENDIENTE" | "COMPLETADA" | "CANCELADA";
+  canceladaAt?: string | null;
   lineas: CompraLinea[];
+  pagos: PagoCompra[];
   createdAt: string;
 }
 
@@ -42,7 +53,7 @@ export function useCompras() {
 
   const crear = async (data: {
     fecha: string;
-    proveedor: string;
+    proveedorId?: string;
     observaciones: string;
     lineas: {
       productoId: string;
@@ -63,5 +74,28 @@ export function useCompras() {
     await fetchCompras();
   };
 
-  return { compras, loading, error, crear, retirar, refetch: fetchCompras };
+  const pagar = async (
+    compraId: string,
+    data: { monto: number; fecha: string; tipo: string; notas?: string },
+  ) => {
+    await comprasService.pagarCompra(compraId, data);
+    await fetchCompras();
+  };
+
+  const cancelar = async (compraId: string) => {
+    const result = await comprasService.cancelar(compraId);
+    await fetchCompras();
+    return result;
+  };
+
+  return {
+    compras,
+    loading,
+    error,
+    crear,
+    retirar,
+    pagar,
+    cancelar,
+    refetch: fetchCompras,
+  };
 }
