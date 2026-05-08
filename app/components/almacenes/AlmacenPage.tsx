@@ -38,27 +38,26 @@ export default function AlmacenPage({ almacenId }: Props) {
             ← Almacenes
           </Link>
           <h1 className="page-title">{almacen?.nombre ?? "Almacén"}</h1>
+          <div className="flex flex-wrap gap-3 mt-1 text-sm text-[var(--muted)]">
+            <span>
+              {loading
+                ? ""
+                : `${stock.length} producto${stock.length !== 1 ? "s" : ""}`}
+            </span>
+            {!loading && totalValor >= 0 && (
+              <span className="font-bold text-[var(--ink)]">
+                Total: {fmt(totalValor)}
+              </span>
+            )}
+          </div>
         </div>
-        <div className="flex flex-col items-end gap-2">
-          <Link
-            href={`/traslados/nuevo?desde=${almacenId}`}
-            className="btn btn-primary"
-          >
-            + Trasladar desde aquí
-          </Link>
-          {!loading && (
-            <div className="text-sm text-[var(--muted)] mt-4">
-              {stock.length} producto{stock.length !== 1 ? "s" : ""}
-              {
-                <span className="font-bold text-[var(--ink)] text-4xl ml-5">
-                  Total: {fmt(totalValor)}
-                </span>
-              }
-            </div>
-          )}
-        </div>
+        <Link
+          href={`/traslados/nuevo?desde=${almacenId}`}
+          className="btn btn-primary"
+        >
+          + Trasladar desde aquí
+        </Link>
       </div>
-
       <div className="search-bar mb-4">
         <input
           type="text"

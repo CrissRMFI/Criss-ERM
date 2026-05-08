@@ -28,8 +28,8 @@ export default function StockTable({ stock, loading, search }: Props) {
       <thead>
         <tr>
           <th>Producto</th>
-          <th className="r">Cantidad</th>
-          <th className="r hidden sm:table-cell">P. Costo</th>
+          <th className="r w-10 sm:w-20">Cantidad</th>
+          <th className="r w-24 sm:w-32">Costo</th>
         </tr>
       </thead>
       <tbody>
@@ -38,7 +38,6 @@ export default function StockTable({ stock, loading, search }: Props) {
 
           return (
             <>
-              {/* Fila principal */}
               <tr
                 key={p.productoId}
                 className={tieneVariosLotes ? "border-b-0" : ""}
@@ -46,26 +45,22 @@ export default function StockTable({ stock, loading, search }: Props) {
                 <td className={`font-medium ${tieneVariosLotes ? "pb-0" : ""}`}>
                   {p.nombre}
                 </td>
-                <td className={`r ${tieneVariosLotes ? "pb-0" : ""}`}>
+                <td className={`r ${tieneVariosLotes ? "pb-0" : ""} `}>
                   <span
-                    className={`font-bold ${p.cantidadTotal <= 5 ? "text-[var(--rust)]" : "text-[var(--ink)]"}`}
+                    className={`font-bold ${p.cantidadTotal <= 5 ? "text-[var(--rust)]" : "text-[var(--ink)]"} `}
                   >
                     {p.cantidadTotal}
                   </span>
                 </td>
-                <td
-                  className={`r hidden sm:table-cell ${tieneVariosLotes ? "pb-0" : ""}`}
-                >
-                  {/* Si hay un solo lote mostrá el costo acá */}
+                <td className={`r ${tieneVariosLotes ? "pb-0" : ""}`}>
                   {!tieneVariosLotes && (
-                    <span className="font-semibold">
+                    <span className="font-semibold whitespace-nowrap text-sm">
                       {fmt(p.lotes[0]?.precioCosto ?? 0)}
                     </span>
                   )}
                 </td>
               </tr>
 
-              {/* Filas de lotes solo si hay más de uno */}
               {tieneVariosLotes &&
                 p.lotes.map((l, i) => (
                   <tr
@@ -76,9 +71,9 @@ export default function StockTable({ stock, loading, search }: Props) {
                       Lote {i + 1}
                     </td>
                     <td className="r pt-0 text-sm text-[var(--muted)]">
-                      {l.cantidad} u.
+                      {l.cantidad}
                     </td>
-                    <td className="r pt-0 hidden sm:table-cell text-sm font-semibold">
+                    <td className="r pt-0 text-sm font-semibold whitespace-nowrap">
                       {fmt(l.precioCosto)}
                     </td>
                   </tr>
