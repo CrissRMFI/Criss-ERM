@@ -3,21 +3,38 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { authService } from "./services/auth.service";
+
+const LINKS_ADMIN = [
+  { href: "/factura", label: "Factura" },
+  { href: "/clientes", label: "Clientes" },
+  { href: "/compras", label: "Compras" },
+  { href: "/traslados", label: "Traslados" },
+  { href: "/almacenes", label: "Almacenes" },
+  { href: "/productos", label: "Productos" },
+  { href: "/historial", label: "Historial" },
+  { href: "/proveedores", label: "Proveedores" },
+];
+
+const LINKS_OPERADOR = [
+  { href: "/compras", label: "Compras" },
+  { href: "/traslados", label: "Traslados" },
+  { href: "/almacenes", label: "Almacenes" },
+];
 
 export default function Nav() {
   const path = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { data: session } = useSession();
 
-  const links = [
-    { href: "/factura", label: "Factura" },
-    { href: "/clientes", label: "Clientes" },
-    { href: "/compras", label: "Compras" },
-    { href: "/traslados", label: "Traslados" },
-    { href: "/almacenes", label: "Almacenes" },
-    { href: "/productos", label: "Productos" },
-    { href: "/historial", label: "Historial" },
-    { href: "/proveedores", label: "Proveedores" },
-  ];
+  const rol = (session?.user as any)?.rol;
+  const links = rol === "ADMIN" ? LINKS_ADMIN : LINKS_OPERADOR;
+
+  const handleLogout = async () => {
+    await authService.logout();
+    window.location.href = "/login";
+  };
 
   return (
     <nav className="bg-[#1a1209] sticky top-0 z-50">
@@ -33,7 +50,7 @@ export default function Nav() {
             <Link
               key={l.href}
               href={l.href}
-              className={`h-14 flex items-center px-5 text-sm font-medium border-b-2 transition-colors
+              className={`h-14 flex items-center px-4 text-sm font-medium border-b-2 transition-colors
                 ${
                   path === l.href
                     ? "text-[#e8d5a3] border-[#c9a84c]"
@@ -43,6 +60,17 @@ export default function Nav() {
               {l.label}
             </Link>
           ))}
+        </div>
+
+        {/* Derecha: usuario + logout desktop */}
+        <div className="hidden md:flex items-center gap-3">
+          <span className="text-xs text-[#9e8f75]">{session?.user?.name}</span>
+          <button
+            onClick={handleLogout}
+            className="text-xs text-[#9e8f75] hover:text-[#e8d5a3] transition-colors"
+          >
+            Salir
+          </button>
         </div>
 
         {/* Hamburger mobile */}
@@ -100,6 +128,18 @@ export default function Nav() {
               {l.label}
             </Link>
           ))}
+          {/* Logout mobile */}
+          <div className="px-5 py-3 border-t border-[#2e2315] flex justify-between items-center">
+            <span className="text-xs text-[#9e8f75]">
+              {session?.user?.name}
+            </span>
+            <button
+              onClick={handleLogout}
+              className="text-xs text-[#9e8f75] hover:text-[#e8d5a3] transition-colors"
+            >
+              Salir
+            </button>
+          </div>
         </div>
       )}
     </nav>

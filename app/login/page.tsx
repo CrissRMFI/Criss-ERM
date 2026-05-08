@@ -1,6 +1,7 @@
 "use client";
 
 import { useLogin } from "../hooks/useLogin";
+import Image from "next/image";
 
 export default function LoginPage() {
   const {
@@ -17,11 +18,15 @@ export default function LoginPage() {
     <div className="min-h-screen bg-[var(--paper)] flex items-center justify-center px-4">
       <div className="w-full max-w-sm flex flex-col items-center gap-8">
         {/* Logo */}
-        <div className="text-center">
-          <h1 className="font-serif text-5xl text-[var(--ink)] tracking-tight">
-            Criss<span className="text-[var(--gold)]">.</span>
-          </h1>
-          <p className="text-sm text-[var(--muted)] mt-2 tracking-widest uppercase">
+        <div className="text-center flex flex-col items-center gap-3">
+          <Image
+            src="https://res.cloudinary.com/developmentcrissroldan/image/upload/v1720758262/maresa-web-provisoria/LogoMaresaBlack_mqbglc.svg"
+            alt="Logo"
+            width={120}
+            height={60}
+            className="object-contain"
+          />
+          <p className="text-sm text-[var(--muted)] tracking-widest uppercase">
             Sistema de gestión
           </p>
         </div>
