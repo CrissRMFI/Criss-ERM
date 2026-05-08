@@ -183,3 +183,18 @@ model TrasladoLinea {
   cantidad    Int
   precioCosto Float
 }
+
+enum RolUsuario {
+  OPERADOR
+  ADMIN
+}
+
+model Usuario {
+  id        String     @id @default(cuid())
+  nombre    String
+  email     String     @unique
+  password  String
+  rol       RolUsuario @default(OPERADOR)
+  activo    Boolean    @default(true)
+  createdAt DateTime   @default(now())
+}
