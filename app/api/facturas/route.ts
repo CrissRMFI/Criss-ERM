@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const clienteId = searchParams.get("clienteId");
@@ -23,14 +25,59 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const body = await req.json();
 
-  // Transacción atómica: incrementar número y crear factura juntos
+  const ALMACEN_MOVIL = "almacen-movil";
+
+  // Validar stock para cada línea
+  const lineasConProducto = (body.lineas ?? []).filter((l: any) => l.nombre);
+
+  if (lineasConProducto.length > 0) {
+    const errores: {
+      nombre: string;
+      disponible: number;
+      solicitado: number;
+    }[] = [];
+
+    for (const linea of lineasConProducto) {
+      // Buscar producto por nombre
+      const producto = await prisma.producto.findFirst({
+        where: { nombre: linea.nombre },
+      });
+
+      if (!producto) continue;
+
+      // Sumar stock disponible en depósito móvil
+      const lotes = await prisma.stockLote.findMany({
+        where: {
+          almacenId: ALMACEN_MOVIL,
+          productoId: producto.id,
+          cantidad: { gt: 0 },
+        },
+      });
+      const disponible = lotes.reduce((acc, l) => acc + l.cantidad, 0);
+
+      if (disponible < linea.qty) {
+        errores.push({
+          nombre: linea.nombre,
+          disponible,
+          solicitado: linea.qty,
+        });
+      }
+    }
+
+    if (errores.length > 0) {
+      return NextResponse.json({ errores }, { status: 422 });
+    }
+  }
+
+  // Transacción: crear factura + descontar stock FIFO + crear notificación
   const factura = await prisma.$transaction(async (tx) => {
     const config = await tx.config.update({
       where: { id: "singleton" },
       data: { ultimoNumeroFactura: { increment: 1 } },
     });
 
-    return tx.factura.create({
+    // Crear factura
+    const nuevaFactura = await tx.factura.create({
       data: {
         numero: config.ultimoNumeroFactura,
         fecha: body.fecha,
@@ -64,6 +111,47 @@ export async function POST(req: Request) {
       },
       include: { lineas: true, pagos: true },
     });
+
+    // Descontar stock FIFO por cada línea
+    for (const linea of lineasConProducto) {
+      const producto = await tx.producto.findFirst({
+        where: { nombre: linea.nombre },
+      });
+      if (!producto) continue;
+
+      const lotes = await tx.stockLote.findMany({
+        where: {
+          almacenId: ALMACEN_MOVIL,
+          productoId: producto.id,
+          cantidad: { gt: 0 },
+        },
+        orderBy: { createdAt: "asc" }, // FIFO
+      });
+
+      let aDescontar = linea.qty;
+      for (const lote of lotes) {
+        if (aDescontar <= 0) break;
+        const descuento = Math.min(lote.cantidad, aDescontar);
+        await tx.stockLote.update({
+          where: { id: lote.id },
+          data: { cantidad: { decrement: descuento } },
+        });
+        aDescontar -= descuento;
+      }
+    }
+
+    // Crear notificación de utilidad pendiente
+    if (lineasConProducto.length > 0) {
+      await tx.notificacion.create({
+        data: {
+          tipo: "UTILIDAD_PENDIENTE",
+          mensaje: `Factura #${config.ultimoNumeroFactura} — ${body.clienteNombre} — pendiente de costeo`,
+          url: `/utilidades/${nuevaFactura.id}`,
+        },
+      });
+    }
+
+    return nuevaFactura;
   });
 
   return NextResponse.json(factura, {

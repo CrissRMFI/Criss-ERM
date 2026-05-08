@@ -58,6 +58,8 @@ model LineaFactura {
   qty       Int
   precio    Float
   subtotal  Float
+  precioCosto     Float?
+  costoAsignado   Boolean  @default(false)
 }
 
 model PagoFactura {
@@ -197,4 +199,18 @@ model Usuario {
   rol       RolUsuario @default(OPERADOR)
   activo    Boolean    @default(true)
   createdAt DateTime   @default(now())
+}
+
+model Notificacion {
+  id        String   @id @default(cuid())
+  tipo      NotifTipo
+  mensaje   String
+  leida     Boolean  @default(false)
+  url       String   // ruta a la que redirige
+  createdAt DateTime @default(now())
+}
+
+enum NotifTipo {
+  UTILIDAD_PENDIENTE
+  TRASLADO_PENDIENTE 
 }

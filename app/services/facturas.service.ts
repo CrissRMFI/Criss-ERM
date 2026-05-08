@@ -21,28 +21,18 @@ export const facturasService = {
     return res.json();
   },
 
-  create: async (data: {
-    clienteId?: string;
-    clienteNombre: string;
-    fecha: string;
-    subtotal: number;
-    saldoAnterior: number;
-    totalGeneral: number;
-    totalPagado: number;
-    saldoPendiente: number;
-    cajaDeuda: string;
-    cajaDejo: string;
-    cajaRetiro: string;
-    cajaNuevoSaldo: number;
-    observaciones: string;
-    lineas: FilaProducto[];
-    pagos: Pago[];
-  }) => {
+  create: async (data: any) => {
     const res = await fetch(BASE, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
+
+    if (res.status === 422) {
+      const { errores } = await res.json();
+      throw { tipo: "STOCK_INSUFICIENTE", errores };
+    }
+
     if (!res.ok) throw new Error("Error al guardar factura");
     return res.json();
   },

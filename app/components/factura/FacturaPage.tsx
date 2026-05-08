@@ -13,6 +13,7 @@ import CajasMovimiento from "./CajasMovimiento";
 import FacturaExport from "./FacturaExport";
 import SelectorCliente from "./SelectorCliente";
 import Toast from "../../ui/Toast";
+import StockInsuficienteModal from "./StockInsuficienteModal";
 
 export default function FacturaPage() {
   const exportRef = useRef<HTMLDivElement>(null);
@@ -21,6 +22,7 @@ export default function FacturaPage() {
   const { toast, showToast } = useToast();
   const [waOpen, setWaOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [stockErrores, setStockErrores] = useState<any[]>([]);
 
   const buildFacturaData = () => ({
     clienteId: factura.clienteSeleccionado?.id,
@@ -54,8 +56,12 @@ export default function FacturaPage() {
       await facturasService.create(buildFacturaData());
       showToast("Factura guardada");
       setTimeout(() => factura.reset(), 1500);
-    } catch {
-      showToast("Error al guardar");
+    } catch (e: any) {
+      if (e.tipo === "STOCK_INSUFICIENTE") {
+        setStockErrores(e.errores);
+      } else {
+        showToast("Error al guardar");
+      }
     } finally {
       setSaving(false);
     }
@@ -73,8 +79,12 @@ export default function FacturaPage() {
       const resultado = await facturasService.create(buildFacturaData());
       await exportWA(resultado.numero, factura.clienteNombre);
       setTimeout(() => factura.reset(), 1500);
-    } catch {
-      showToast("Error al procesar");
+    } catch (e: any) {
+      if (e.tipo === "STOCK_INSUFICIENTE") {
+        setStockErrores(e.errores);
+      } else {
+        showToast("Error al guardar");
+      }
     } finally {
       setSaving(false);
     }
@@ -284,6 +294,12 @@ export default function FacturaPage() {
       )}
 
       <Toast msg={toast.msg} show={toast.show} />
+      {stockErrores.length > 0 && (
+        <StockInsuficienteModal
+          errores={stockErrores}
+          onClose={() => setStockErrores([])}
+        />
+      )}
     </>
   );
 }

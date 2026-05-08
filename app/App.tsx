@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { authService } from "./services/auth.service";
+import Campanita from "./components/Campanita";
 
 const LINKS_ADMIN = [
   { href: "/factura", label: "Factura" },
@@ -64,6 +65,7 @@ export default function Nav() {
 
         {/* Derecha: usuario + logout desktop */}
         <div className="hidden md:flex items-center gap-3">
+          <Campanita />
           <span className="text-xs text-[#9e8f75]">{session?.user?.name}</span>
           <button
             onClick={handleLogout}
@@ -130,6 +132,7 @@ export default function Nav() {
           ))}
           {/* Logout mobile */}
           <div className="px-5 py-3 border-t border-[#2e2315] flex justify-between items-center">
+            <Campanita />
             <span className="text-xs text-[#9e8f75]">
               {session?.user?.name}
             </span>
